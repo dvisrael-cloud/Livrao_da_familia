@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-history-green: #2F4F4F;
+  --color-parchment: #F5F5DC;
+  --color-gold-accent: #DAA520;
+
+  --font-serif: "Inter", sans-serif;
+  --font-sans: "Inter", sans-serif;
+  --font-playfair: "Playfair Display", serif;
+}
+
+@layer base {
+  body {
+    @apply bg-parchment text-gray-800 font-sans;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif text-history-green;
+  }
+}
+
+@layer utilities {
+
+  /* Hide scrollbar completely when used */
+  .scrollbar-hide::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent; /* Chrome/Safari/Webkit */
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox when used */
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  /* Smooth scroll behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Global thin custom scrollbars - Verde Escuro (Afina o máximo possível) */
+  *::-webkit-scrollbar {
+    width: 3px;          /* Barra vertical super fina */
+    height: 3px;         /* Barra horizontal super fina */
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent; /* Fundo invisível para mais espaço limpo */
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #064E3B; /* Emerald-900 / Verde Escuro Intenso */
+    border-radius: 10px;       /* Bordas arredondadas suaves */
+  }
+
+  /* Firefox Thin Scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #064E3B transparent;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 20px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  .animate-fade-in-up {
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .add-photo-btn {
+    @apply w-full py-3 px-4 rounded-lg border-2 border-dashed border-gray-300 text-gray-500 font-medium transition-all duration-200 flex items-center justify-center gap-2 hover:bg-white hover:border-history-green hover:text-history-green active:scale-[0.98];
+  }
+}
+
+@media print {
+  @page {
+    margin: 20mm;
+  }
+
+  /* Hide unnecessary elements during print */
+  header,
+  .fixed.bottom-0,
+  /* The bottom button bar */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Ensure background colors are printed */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Clean up layout */
+  body {
+    background: white;
+  }
+
+  .bg-white {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}

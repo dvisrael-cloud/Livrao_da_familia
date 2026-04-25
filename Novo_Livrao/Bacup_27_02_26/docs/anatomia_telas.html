@@ -1,0 +1,1137 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anatomia das Telas - Livrao</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1e3a5f, #0f172a);
+            padding: 60px 24px;
+            text-align: center
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(28px, 5vw, 42px);
+            color: #fff;
+            margin-bottom: 8px
+        }
+
+        .hero h1 span {
+            color: #fbbf24
+        }
+
+        .hero p {
+            color: #94a3b8;
+            font-size: 14px
+        }
+
+        nav {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            overflow-x: auto
+        }
+
+        nav .inner {
+            display: flex;
+            gap: 6px;
+            max-width: 1200px;
+            margin: 0 auto
+        }
+
+        nav a {
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            border: 1px solid transparent;
+            transition: all .2s
+        }
+
+        nav a:hover,
+        nav a.active {
+            background: #fbbf24;
+            color: #0f172a;
+            border-color: #fbbf24
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 16px
+        }
+
+        .screen {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            overflow: hidden;
+            scroll-margin-top: 70px
+        }
+
+        .screen-head {
+            padding: 20px 24px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            align-items: center;
+            gap: 14px
+        }
+
+        .screen-head .icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0
+        }
+
+        .screen-head h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: #f8fafc
+        }
+
+        .screen-head .tech {
+            font-family: monospace;
+            font-size: 11px;
+            color: #fbbf24;
+            background: #fbbf2420;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 4px;
+            display: inline-block
+        }
+
+        .screen-head .file {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px
+        }
+
+        .screen-body {
+            padding: 24px
+        }
+
+        .layer {
+            background: #0f172a;
+            border: 1px solid #475569;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative
+        }
+
+        .layer::before {
+            content: attr(data-label);
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: #7c3aed;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: .1em
+        }
+
+        .layer.layout::before {
+            background: #0ea5e9
+        }
+
+        .layer.container-l::before {
+            background: #10b981
+        }
+
+        .layer.component::before {
+            background: #f59e0b
+        }
+
+        .layer.modal::before {
+            background: #ef4444
+        }
+
+        .elem {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin: 4px 0;
+            font-size: 12px;
+            border: 1px solid #334155;
+            background: #1e293b
+        }
+
+        .elem:hover {
+            border-color: #fbbf24;
+            background: #1e293b
+        }
+
+        .elem .tag {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            white-space: nowrap;
+            flex-shrink: 0
+        }
+
+        .tag.div {
+            background: #3b82f620;
+            color: #60a5fa;
+            border: 1px solid #3b82f640
+        }
+
+        .tag.btn {
+            background: #f59e0b20;
+            color: #fbbf24;
+            border: 1px solid #f59e0b40
+        }
+
+        .tag.input {
+            background: #10b98120;
+            color: #34d399;
+            border: 1px solid #10b98140
+        }
+
+        .tag.img {
+            background: #ec489920;
+            color: #f472b6;
+            border: 1px solid #ec489940
+        }
+
+        .tag.text {
+            background: #8b5cf620;
+            color: #a78bfa;
+            border: 1px solid #8b5cf640
+        }
+
+        .tag.nav {
+            background: #06b6d420;
+            color: #22d3ee;
+            border: 1px solid #06b6d440
+        }
+
+        .tag.bar {
+            background: #ef444420;
+            color: #f87171;
+            border: 1px solid #ef444440
+        }
+
+        .tag.icon {
+            background: #64748b20;
+            color: #94a3b8;
+            border: 1px solid #64748b40
+        }
+
+        .elem .name {
+            color: #f8fafc;
+            font-weight: 600;
+            font-size: 12px
+        }
+
+        .elem .desc {
+            color: #94a3b8;
+            font-size: 11px
+        }
+
+        .elem .size {
+            color: #64748b;
+            font-size: 10px;
+            font-family: monospace;
+            margin-left: auto;
+            white-space: nowrap
+        }
+
+        .grid2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        @media(max-width:768px) {
+            .grid2 {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .sep {
+            border: 0;
+            border-top: 1px dashed #334155;
+            margin: 16px 0
+        }
+
+        .note {
+            background: #fbbf2410;
+            border: 1px solid #fbbf2430;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 11px;
+            color: #fbbf24;
+            margin-top: 12px
+        }
+
+        .screenshot {
+            margin: 16px 0;
+            text-align: center
+        }
+
+        .screenshot img {
+            max-width: 320px;
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid #475569;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            cursor: pointer;
+            transition: transform .3s, box-shadow .3s
+        }
+
+        .screenshot img:hover {
+            transform: scale(1.03);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6)
+        }
+
+        .screenshot p {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 6px;
+            font-style: italic
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero">
+        <h1>🔬 Anatomia das Telas do <span>Livrão da Família</span></h1>
+        <p>Mapeamento detalhado de cada elemento visual — containers, botões, cards, camadas e dimensões</p>
+    </div>
+    <nav>
+        <div class="inner">
+            <a href="#layout">📐 Layout</a>
+            <a href="#login">🔐 Login</a>
+            <a href="#register">📝 Cadastro</a>
+            <a href="#welcome">�� Boas-Vindas</a>
+            <a href="#hub">🏠 Console</a>
+            <a href="#tree">🌳 Árvore</a>
+            <a href="#form">📋 Formulário</a>
+            <a href="#navbar">🧭 NavBar</a>
+            <a href="#gallery">📸 Galeria</a>
+            <a href="#recipes">🍳 Receitas</a>
+            <a href="#account">⚙️ Conta</a>
+            <a href="#ui">🧩 UI Base</a>
+        </div>
+    </nav>
+    <div class="container">
+
+        <!-- ============ MAINLAYOUT (GLOBAL) ============ -->
+        <div class="screen" id="layout">
+            <div class="screen-head">
+                <div class="icon" style="background:#0ea5e920">📐</div>
+                <div>
+                    <h2>MainLayout — Estrutura Global</h2>
+                    <div class="tech">MainLayout</div>
+                    <div class="file">📁 src/layouts/Layout.jsx (74 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="layer layout" data-label="Camada Raiz">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Root Container</span><span
+                            class="desc">min-h-screen, flex-col, bg-slate-50</span><span class="size">100vw ×
+                            100vh</span></div>
+
+                    <div class="layer container-l" data-label="Header (sticky)">
+                        <div class="elem"><span class="tag div">HEADER</span><span class="name">Header
+                                Principal</span><span class="desc">bg-white/80, backdrop-blur-lg, sticky top-0, z-30,
+                                border-b amber-400</span><span class="size">100% × auto</span></div>
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Header Inner</span><span
+                                class="desc">max-w-5xl mx-auto, flex-col, pt-3 pb-1</span><span class="size">max
+                                1280px</span></div>
+                        <div class="grid2">
+                            <div class="elem"><span class="tag img">IMG</span><span class="name">Logo
+                                    (círculo)</span><span class="desc">w-20 h-20 sm:w-24 sm:h-24, rounded-full,
+                                    shadow-lg, border-2</span><span class="size">80×80 / 96×96px</span></div>
+                            <div class="elem"><span class="tag div">DIV</span><span class="name">Coluna
+                                    Direita</span><span class="desc">flex-1, flex-col, gap-2 — contém título +
+                                    ações</span><span class="size">flex</span></div>
+                        </div>
+                        <div class="elem"><span class="tag text">SPAN</span><span class="name">headerTitle</span><span
+                                class="desc">Dinâmico: "LIVRÃO DA FAMÍLIA" + nome/seção. Playfair bold,
+                                green-900</span><span class="size">variável</span></div>
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">headerAction</span><span
+                                class="desc">Botões contextuais (Voltar/Salvar/Apagar) — flex gap-1 sm:gap-2</span><span
+                                class="size">auto</span></div>
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">headerBottom</span><span
+                                class="desc">Barra de Progresso — w-full</span><span class="size">100%</span></div>
+                        <div class="elem"><span class="tag nav">NAV</span><span class="name">navBar
+                                (FormNavBar)</span><span class="desc">Abas de seção — border-t slate-100, pt-1. Só
+                                aparece no form</span><span class="size">100%</span></div>
+                    </div>
+
+                    <div class="layer container-l" data-label="Main Content">
+                        <div class="elem"><span class="tag div">MAIN</span><span class="name">Área de
+                                Conteúdo</span><span class="desc">flex-grow, p-4 md:p-6, mb-8, pt-6. form: max-w-7xl,
+                                outros: max-w-4xl</span><span class="size">max 896px / 1280px</span></div>
+                    </div>
+
+                    <div class="layer container-l" data-label="Footer">
+                        <div class="elem"><span class="tag div">FOOTER</span><span class="name">Rodapé</span><span
+                                class="desc">bg-white, border-t stone-200, py-6, text-center, text-xs</span><span
+                                class="size">100% × ~60px</span></div>
+                        <div class="elem"><span class="tag text">P</span><span class="name">Copyright</span><span
+                                class="desc">"Livrão da Família © 2025" + "Comissão de Genealogia e Memória"</span><span
+                                class="size">auto</span></div>
+                    </div>
+                </div>
+                <div class="note">💡 O MainLayout envolve TODAS as telas (exceto WelcomeScreen que é fixed inset-0
+                    z-50). O conteúdo muda via prop {children}.</div>
+            </div>
+        </div>
+
+        <!-- ============ LOGIN ============ -->
+        <div class="screen" id="login">
+            <div class="screen-head">
+                <div class="icon" style="background:#3b82f620">🔐</div>
+                <div>
+                    <h2>Tela de Login</h2>
+                    <div class="tech">LoginForm</div>
+                    <div class="file">📁 src/features/Auth/LoginForm.jsx (80 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="screenshot"><img src="screenshots/01_login.png" alt="Tela de Login">
+                    <p>📸 Print da tela real</p>
+                </div>
+                <div class="layer component" data-label="Card Login">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Login Card</span><span
+                            class="desc">bg-white, p-8, rounded-xl, shadow-lg, border-t-4 border-history-green
+                            (#2F4F4F)</span><span class="size">max-w-sm (384px)</span></div>
+                    <div class="elem"><span class="tag text">H2</span><span class="name">Título</span><span
+                            class="desc">"Acessar Livrão" — text-2xl, font-serif, text-history-green,
+                            font-bold</span><span class="size">auto</span></div>
+                    <hr class="sep">
+                    <div class="elem"><span class="tag div">FORM</span><span class="name">Formulário</span><span
+                            class="desc">space-y-4 — contém campos + botão</span><span class="size">100%</span></div>
+                    <div class="elem"><span class="tag input">INPUT</span><span class="name">Campo E-mail</span><span
+                            class="desc">Componente &lt;Input&gt; — label="E-mail", type="email",
+                            placeholder="seu@email.com"</span><span class="size">100% × 54px</span></div>
+                    <div class="elem"><span class="tag input">INPUT</span><span class="name">Campo Senha</span><span
+                            class="desc">Componente &lt;Input&gt; — type="password", com toggle Eye/EyeOff
+                            (lucide)</span><span class="size">100% × 54px</span></div>
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Erro (condicional)</span><span
+                            class="desc">p-3, bg-red-50, text-red-600, text-xs, rounded-lg, border red-100</span><span
+                            class="size">100% × auto</span></div>
+                    <div class="elem"><span class="tag btn">BUTTON</span><span class="name">Botão "Entrar"</span><span
+                            class="desc">Componente &lt;Button&gt; variant=primary — px-6 py-3, rounded-xl, gradient
+                            emerald→teal</span><span class="size">100% × 48px</span></div>
+                    <hr class="sep">
+                    <div class="elem"><span class="tag btn">BUTTON</span><span class="name">"Ir para Minha
+                            Conta"</span><span class="desc">text-xs, text-stone-500, underline, ícone SVG user
+                            12×12</span><span class="size">auto</span></div>
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Divisória + Link
+                            Cadastro</span><span class="desc">mt-6, border-t stone-100, pt-4. "Novo por aqui?" + "Criar
+                            Conta" (bold, green)</span><span class="size">100%</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ REGISTER ============ -->
+        <div class="screen" id="register">
+            <div class="screen-head">
+                <div class="icon" style="background:#f59e0b20">📝</div>
+                <div>
+                    <h2>Tela de Cadastro</h2>
+                    <div class="tech">RegisterForm</div>
+                    <div class="file">📁 src/features/Auth/RegisterForm.jsx (155 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="layer component" data-label="Card Cadastro">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Register Card</span><span
+                            class="desc">bg-white, p-8, rounded-xl, shadow-lg, border-t-4 border-history-gold
+                            (#DAA520)</span><span class="size">max-w-sm (384px)</span></div>
+                    <div class="elem"><span class="tag text">H2</span><span class="name">Título</span><span
+                            class="desc">"Criar Conta" ou "Aceitar Convite" — text-2xl, serif, green, bold</span><span
+                            class="size">auto</span></div>
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Banner Convite
+                            (condicional)</span><span class="desc">bg-green-50, text-green-800, text-xs, rounded, border
+                            green-200</span><span class="size">100%</span></div>
+                    <div class="elem"><span class="tag input">INPUT</span><span class="name">Campo Nome
+                            Completo</span><span class="desc">&lt;Input&gt; — disabled se convite válido</span><span
+                            class="size">100% × 54px</span></div>
+                    <div class="elem"><span class="tag input">INPUT</span><span class="name">Campo E-mail</span><span
+                            class="desc">&lt;Input&gt; type="email" — disabled se convite</span><span class="size">100%
+                            × 54px</span></div>
+                    <div class="elem"><span class="tag input">INPUT</span><span class="name">Campo Senha</span><span
+                            class="desc">&lt;Input&gt; type="password", placeholder="Mínimo 6 caracteres"</span><span
+                            class="size">100% × 54px</span></div>
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Checkbox Equipe Admin
+                            (condicional)</span><span class="desc">bg-blue-50, border blue-100, checkbox 16×16 + texto
+                            explicativo</span><span class="size">100%</span></div>
+                    <div class="elem"><span class="tag btn">BUTTON</span><span class="name">Botão
+                            "Cadastrar"</span><span class="desc">&lt;Button&gt; variant=primary, bg-history-gold —
+                            w-full</span><span class="size">100% × 48px</span></div>
+                    <div class="elem"><span class="tag btn">BUTTON</span><span class="name">"Já tenho conta. Fazer
+                            Login."</span><span class="desc">text-sm, text-stone-500</span><span
+                            class="size">auto</span></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ============ WELCOME ============ -->
+        <div class="screen" id="welcome">
+            <div class="screen-head">
+                <div class="icon" style="background:#fbbf2420">🎉</div>
+                <div>
+                    <h2>Tela de Boas-Vindas</h2>
+                    <div class="tech">WelcomeScreen</div>
+                    <div class="file">📁 src/features/Welcome/WelcomeScreen.jsx (44 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="layer modal" data-label="Overlay Fullscreen">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Overlay</span><span
+                            class="desc">fixed inset-0, bg-stone-50, z-50, flex center, fade-in/out 500ms</span><span
+                            class="size">100vw × 100vh</span></div>
+                    <div class="elem"><span class="tag img">IMG</span><span class="name">Logo Animado</span><span
+                            class="desc">w-24 h-24 sm:w-32 sm:h-32, rounded-full, shadow-lg, animate-bounce</span><span
+                            class="size">96×96 / 128×128px</span></div>
+                    <div class="elem"><span class="tag text">P</span><span class="name">Saudação</span><span
+                            class="desc">"Shalom," — font-serif, italic, text-lg/xl, text-stone-500</span><span
+                            class="size">auto</span></div>
+                    <div class="elem"><span class="tag text">H1</span><span class="name">Nome</span><span
+                            class="desc">{repName} — text-4xl md:5xl, font-serif bold, text-history-green</span><span
+                            class="size">auto</span></div>
+                    <div class="elem"><span class="tag text">P</span><span class="name">Mensagem</span><span
+                            class="desc">"Bem-vindo ao console da sua história." — text-stone-600, text-lg</span><span
+                            class="size">max-w-md</span></div>
+                </div>
+                <div class="note">⏱️ Auto-dismiss: aparece 3s → fade-out 500ms → vai ao Hub</div>
+            </div>
+        </div>
+
+        <!-- ============ HUB ============ -->
+        <div class="screen" id="hub">
+            <div class="screen-head">
+                <div class="icon" style="background:#10b98120">🏠</div>
+                <div>
+                    <h2>Console / Painel Principal</h2>
+                    <div class="tech">UserHub</div>
+                    <div class="file">📁 src/features/Hub/UserHub.jsx (140 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="screenshot"><img src="screenshots/02_console_hub.png" alt="Console / Hub">
+                    <p>📸 Print da tela real</p>
+                </div>
+                <div class="layer component" data-label="Container Principal">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Hub Container</span><span
+                            class="desc">min-h-[80vh], flex-col center, p-4, animate-fade-in, z-10</span><span
+                            class="size">100%</span></div>
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Stack de Cards</span><span
+                            class="desc">flex-col, gap-4, max-w-md (448px)</span><span class="size">max 448px</span>
+                    </div>
+                    <hr class="sep">
+                    <div class="layer component" data-label="Card 1: Árvore Familiar">
+                        <div class="elem"><span class="tag btn">BUTTON</span><span class="name">Card Árvore
+                                Familiar</span><span class="desc">bg-gradient emerald-50→teal-50, border-2 emerald-200,
+                                rounded-3xl, p-6, shadow-lg</span><span class="size">100% × auto</span></div>
+                        <div class="elem"><span class="tag icon">ICON</span><span class="name">Ícone Fundo
+                                (FaSitemap)</span><span class="desc">absolute right-4, w-32 h-32, emerald-600,
+                                opacity-10→20 hover</span><span class="size">128×128px</span></div>
+                        <div class="elem"><span class="tag text">H3</span><span class="name">Título</span><span
+                                class="desc">"Árvore Familiar" — text-xl, font-serif bold</span><span
+                                class="size">auto</span></div>
+                        <div class="elem"><span class="tag text">P</span><span class="name">Descrição</span><span
+                                class="desc">"Preencher dados genealógicos..." — text-sm, text-slate-600</span><span
+                                class="size">auto</span></div>
+                        <div class="elem"><span class="tag icon">SVG</span><span class="name">Seta →</span><span
+                                class="desc">h-6 w-6, emerald-600, translate-x-1 hover</span><span
+                                class="size">24×24px</span></div>
+                    </div>
+                    <div class="layer component" data-label="Card 2: Álbum Digital">
+                        <div class="elem"><span class="tag btn">BUTTON</span><span class="name">Card Álbum
+                                Digital</span><span class="desc">bg-gradient amber-50→yellow-50, border-2 amber-200,
+                                rounded-3xl, p-6</span><span class="size">100% × auto</span></div>
+                        <div class="elem"><span class="tag icon">ICON</span><span class="name">Ícone Fundo
+                                (FaAddressCard)</span><span class="desc">w-32 h-32, amber-600, opacity-10</span><span
+                                class="size">128×128px</span></div>
+                        <div class="elem"><span class="tag text">H3+P</span><span class="name">"Álbum Digital" +
+                                descrição</span><span class="desc">Mesma estrutura do Card 1, paleta âmbar</span><span
+                                class="size">auto</span></div>
+                    </div>
+                    <div class="layer component" data-label="Card 3: Receitas">
+                        <div class="elem"><span class="tag btn">BUTTON</span><span class="name">Card
+                                Receitas</span><span class="desc">bg-gradient rose-50→pink-50, border-2 rose-200,
+                                rounded-3xl, p-6</span><span class="size">100% × auto</span></div>
+                        <div class="elem"><span class="tag icon">ICON</span><span class="name">Ícone Fundo
+                                (FaUtensils)</span><span class="desc">w-32 h-32, rose-600, opacity-10</span><span
+                                class="size">128×128px</span></div>
+                        <div class="elem"><span class="tag text">H3+P</span><span class="name">"Receitas" +
+                                descrição</span><span class="desc">Paleta rose/pink</span><span class="size">auto</span>
+                        </div>
+                    </div>
+                    <hr class="sep">
+                    <div class="elem"><span class="tag btn">BUTTON</span><span class="name">Minha Conta
+                            (Configurações)</span><span class="desc">gradient slate-100→200, py-3.5, rounded-xl,
+                            border-2 slate-300, ícone SVG User 20×20</span><span class="size">max-w-md × 52px</span>
+                    </div>
+                    <div class="elem"><span class="tag btn">BUTTON</span><span class="name">"Sair com
+                            segurança"</span><span class="desc">mt-16, text-slate-400, hover:text-red-600,
+                            hover:bg-red-50, ícone SVG logout 16×16</span><span class="size">auto × 40px</span></div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ============ FAMILY TREE ============ -->
+        <div class="screen" id="tree">
+            <div class="screen-head">
+                <div class="icon" style="background:#fbbf2420">🌳</div>
+                <div>
+                    <h2>Árvore Familiar</h2>
+                    <div class="tech">FamilyTreeSelector</div>
+                    <div class="file">📁 src/components/FamilyTreeSelector.jsx (523 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="screenshot"><img src="screenshots/03_arvore_familiar.png" alt="Árvore Familiar">
+                    <p>📸 Print da tela real</p>
+                </div>
+                <div class="layer component" data-label="Wrapper">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Outer Wrapper</span><span
+                            class="desc">w-full, flex center, py-8 px-4</span><span class="size">100%</span></div>
+                    <div class="layer container-l" data-label="Mapa da Árvore">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Tree Container</span><span
+                                class="desc">max-w-[1200px], rounded-2xl, shadow-2xl, overflow-auto, bg-image
+                                FUNDO.png</span><span class="size">1200px × 750px (min 600px)</span></div>
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Grid Debug
+                                Overlay</span><span class="desc">absolute inset-0, pointer-events-none, opacity-20,
+                                bg-image LAYOUT COM GRID.png</span><span class="size">100%</span></div>
+                        <div class="note">📐 Sistema de Grid: 34 colunas × 52 linhas. Escala: SCALE_FACTOR = 1.3 (30%
+                            maior)</div>
+                        <hr class="sep">
+                        <div class="grid2">
+                            <div class="elem"><span class="tag btn">BTN×8</span><span class="name">Cards
+                                    Bisavós</span><span class="desc">absolute, rounded-lg, border-2, font-size 0.55rem,
+                                    pad 0.3rem. Cores: azul/rose/amber/emerald por casal</span><span class="size">~22% ×
+                                    ~8.5% cada</span></div>
+                            <div class="elem"><span class="tag btn">BTN×4</span><span class="name">Cards
+                                    Avós</span><span class="desc">Mesma estrutura. Cores: fuchsia (paterno) / cyan
+                                    (materno)</span><span class="size">~22% × ~8.5% cada</span></div>
+                            <div class="elem"><span class="tag btn">BTN×2</span><span class="name">Cards
+                                    Pais</span><span class="desc">type='pai'/'mae'. Posição y=27.5%</span><span
+                                    class="size">~22% × ~8.3% cada</span></div>
+                            <div class="elem"><span class="tag btn">BTN×1</span><span class="name">Card
+                                    Representante</span><span class="desc">"REPRESENTANTE FAMILIAR" — 30% mais estreito,
+                                    y=33%, ref=repRef</span><span class="size">~28.5% × ~8.3%</span></div>
+                        </div>
+                        <hr class="sep">
+                        <div class="elem"><span class="tag text">SPAN</span><span class="name">Label do Card
+                                (topo)</span><span class="desc">text-[0.5rem], opacity-70, uppercase tracking-tight —
+                                ex: "BISAVÔ", "AVÓ PATERNA"</span><span class="size">auto</span></div>
+                        <div class="elem"><span class="tag text">SPAN</span><span class="name">Nome do Membro
+                                (meio)</span><span class="desc">text-[0.6rem], font-semibold, truncate — ex: "Vidal
+                                David Israel"</span><span class="size">auto</span></div>
+                        <div class="elem"><span class="tag bar">DIV</span><span class="name">Barra de Progresso
+                                (base)</span><span class="desc">w-full, bg-green-600, rounded-sm, height 3px — só
+                                aparece se isCompleted</span><span class="size">100% × 3px</span></div>
+                        <hr class="sep">
+                        <div class="elem"><span class="tag btn">BTN×N</span><span class="name">Cards "Outro Parente"
+                                (dinâmicos)</span><span class="desc">Até 8 slots, 4 colunas, cores variadas
+                                (violet/orange/teal/pink). Só aparecem se preenchidos</span><span class="size">~22% ×
+                                ~8.5%</span></div>
+                    </div>
+
+                    <div class="layer container-l" data-label="Status Bar (topo)">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Status Bar</span><span
+                                class="desc">absolute top-4, bg-white/90, backdrop-blur, rounded-xl, p-2.5, shadow-md,
+                                z-50</span><span class="size">max-w-sm</span></div>
+                        <div class="elem"><span class="tag text">H2</span><span class="name">"Árvore Genealógica da
+                                Família"</span><span class="desc">text-[10px], serif bold, uppercase
+                                tracking-widest</span><span class="size">auto</span></div>
+                    </div>
+
+                    <div class="layer container-l" data-label="Barra Inferior (+ Parente)">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Add Parente Bar</span><span
+                                class="desc">absolute bottom-4, bg-white/95, backdrop-blur, rounded-xl, shadow-lg, px-4
+                                py-2</span><span class="size">calc(100% - 32px)</span></div>
+                        <div class="elem"><span class="tag text">SPAN</span><span class="name">"+ Parente:"</span><span
+                                class="desc">text-xs, font-bold, uppercase</span><span class="size">auto</span></div>
+                        <div class="elem"><span class="tag input">SELECT</span><span class="name">Dropdown
+                                Parentesco</span><span class="desc">27 opções (Irmão, Prima, Tio, etc.), text-xs, border
+                                slate-300</span><span class="size">flex-1</span></div>
+                        <div class="elem"><span class="tag btn">BUTTON</span><span class="name">"Cadastrar"</span><span
+                                class="desc">bg-slate-700, text-white, px-3 py-1, rounded-lg — condicional</span><span
+                                class="size">auto</span></div>
+                    </div>
+
+                    <div class="layer modal" data-label="Intro Animation (4s)">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Intro Overlay</span><span
+                                class="desc">fixed inset-0, z-[100], bg-white/95, backdrop-blur-md, framer-motion
+                                fade</span><span class="size">100vw × 100vh</span></div>
+                        <div class="elem"><span class="tag img">VIDEO</span><span class="name">Logo Animado</span><span
+                                class="desc">logo_movimento.mp4, autoPlay muted, w-64 h-64, object-contain</span><span
+                                class="size">256×256px</span></div>
+                        <div class="elem"><span class="tag bar">DIV</span><span class="name">Barra Timer</span><span
+                                class="desc">motion width 0→200px em 4s linear, h-1, bg-history-green</span><span
+                                class="size">200px × 4px</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ============ FORM ENGINE ============ -->
+        <div class="screen" id="form">
+            <div class="screen-head">
+                <div class="icon" style="background:#8b5cf620">📋</div>
+                <div>
+                    <h2>Formulário de Edição</h2>
+                    <div class="tech">FormEngine</div>
+                    <div class="file">📁 src/features/Form/FormEngine.jsx (493 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="screenshot"><img src="screenshots/04_formulario_edicao.png" alt="Formulário de Edição">
+                    <p>📸 Print da tela real</p>
+                </div>
+                <div class="layer component" data-label="Engine Container">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Engine Root</span><span
+                            class="desc">max-w-4xl mx-auto, pb-32 pt-6</span><span class="size">max 896px</span></div>
+                    <div class="layer container-l" data-label="Form Card">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Form Card</span><span
+                                class="desc">bg-white, p-4 md:p-12, rounded-xl, shadow-sm, border slate-200. Animação
+                                fadeInUp 0.6s</span><span class="size">100%</span></div>
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Grid de Campos</span><span
+                                class="desc">grid cols-1 md:cols-12, gap-x-6 gap-y-4. Cada campo usa col-span-6
+                                (halfWidth) ou col-span-12</span><span class="size">12 colunas</span></div>
+                        <hr class="sep">
+                        <div class="grid2">
+                            <div class="elem"><span class="tag input">INPUT</span><span
+                                    class="name">FormInput</span><span class="desc">InputField / EditableField — campo
+                                    texto padrão com label</span><span class="size">col-span-6/12</span></div>
+                            <div class="elem"><span class="tag input">TEXTAREA</span><span
+                                    class="name">FormTextArea</span><span class="desc">TextAreaField — campo de texto
+                                    longo</span><span class="size">col-span-12</span></div>
+                            <div class="elem"><span class="tag input">INPUT</span><span
+                                    class="name">FormDate</span><span class="desc">DateInputField — campo
+                                    data</span><span class="size">col-span-6</span></div>
+                            <div class="elem"><span class="tag input">SELECT</span><span
+                                    class="name">FormSelect</span><span class="desc">SelectField / SingleSelectGroup —
+                                    dropdown de opções</span><span class="size">col-span-6/12</span></div>
+                            <div class="elem"><span class="tag input">CHECKBOX</span><span
+                                    class="name">FormCheckbox</span><span class="desc">CheckboxField — campo
+                                    boolean</span><span class="size">col-span-12</span></div>
+                            <div class="elem"><span class="tag text">DIV</span><span
+                                    class="name">FormStaticText</span><span class="desc">StaticText — texto informativo
+                                    (não editável)</span><span class="size">col-span-12</span></div>
+                            <div class="elem"><span class="tag input">DIV</span><span
+                                    class="name">RichMediaInput</span><span class="desc">Campo de rich text com
+                                    formatação</span><span class="size">col-span-12</span></div>
+                            <div class="elem"><span class="tag input">DIV</span><span
+                                    class="name">LocationSelector</span><span class="desc">Seletor País → Estado →
+                                    Cidade encadeado</span><span class="size">col-span-12</span></div>
+                        </div>
+                    </div>
+                    <hr class="sep">
+                    <div class="layer container-l" data-label="Footer Navegação (fixed mobile)">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Navigation
+                                Footer</span><span class="desc">fixed bottom-0, bg-white/90 backdrop-blur, border-t
+                                slate-200, z-40. Em desktop: relative</span><span class="size">100% × 56px</span></div>
+                        <div class="grid2">
+                            <div class="elem"><span class="tag btn">BTN</span><span class="name">"Voltar"
+                                    (back)</span><span class="desc">bg-white, text-black, border slate-200,
+                                    rounded-full, h-9 px-5</span><span class="size">min 100px × 36px</span></div>
+                            <div class="elem"><span class="tag btn">BTN</span><span class="name">"REFERÊNCIA"
+                                    (reference)</span><span class="desc">bg-slate-200, text-slate-800, rounded-full — só
+                                    aparece step > 2</span><span class="size">min 100px × 36px</span></div>
+                            <div class="elem"><span class="tag btn">BTN</span><span class="name">"Próximo"
+                                    (next)</span><span class="desc">bg-slate-900, text-white, rounded-full</span><span
+                                    class="size">min 100px × 36px</span></div>
+                            <div class="elem"><span class="tag btn">BTN</span><span class="name">"Salvar e Finalizar"
+                                    (save)</span><span class="desc">bg-blue-600, text-white, rounded-full — último
+                                    passo</span><span class="size">min 100px × 36px</span></div>
+                        </div>
+                        <div class="note">📐 Todos: font-size 9px, uppercase, tracking-wider, font-bold</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ NAVBAR ============ -->
+        <div class="screen" id="navbar">
+            <div class="screen-head">
+                <div class="icon" style="background:#06b6d420">🧭</div>
+                <div>
+                    <h2>NavBar de Seções</h2>
+                    <div class="tech">FormNavBar</div>
+                    <div class="file">📁 src/features/Form/FormNavBar.jsx (95 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="layer component" data-label="Barra de Navegação">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">NavBar Container</span><span
+                            class="desc">relative, w-full, pb-3</span><span class="size">100%</span></div>
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Fade Esquerdo</span><span
+                            class="desc">absolute left-0, gradient from-white to-transparent, w-20, z-10,
+                            pointer-events-none</span><span class="size">80px × 100%</span></div>
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Fade Direito</span><span
+                            class="desc">absolute right-0, gradient from-white to-transparent, w-20, z-10</span><span
+                            class="size">80px × 100%</span></div>
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Scroll Container</span><span
+                            class="desc">flex, gap-2.5, overflow-x-auto, scrollbar-hide, snap-x, px-4</span><span
+                            class="size">100%</span></div>
+                    <hr class="sep">
+                    <div class="grid2">
+                        <div class="elem"><span class="tag btn">BTN</span><span class="name">Aba
+                                "Identidade"</span><span class="desc">id=Biografia, icon=User/18px, gradient
+                                emerald→teal quando ativo</span><span class="size">auto × 38px</span></div>
+                        <div class="elem"><span class="tag btn">BTN</span><span class="name">Aba "Família e
+                                vida"</span><span class="desc">id=FamilyVital, icon=Users/18px</span><span
+                                class="size">auto × 38px</span></div>
+                        <div class="elem"><span class="tag btn">BTN</span><span class="name">Aba
+                                "Trajetória"</span><span class="desc">id=LifeCulture, icon=Briefcase/18px</span><span
+                                class="size">auto × 38px</span></div>
+                        <div class="elem"><span class="tag btn">BTN</span><span class="name">Aba "Memórias
+                                Vivas"</span><span class="desc">id=História, icon=BookOpen/18px</span><span
+                                class="size">auto × 38px</span></div>
+                        <div class="elem"><span class="tag btn">BTN</span><span class="name">Aba "Fotos"</span><span
+                                class="desc">id=GALLERY_ACTION, icon=Camera/18px — abre galeria</span><span
+                                class="size">auto × 38px</span></div>
+                    </div>
+                    <div class="note">📐 Cada aba: px-5 py-2.5, rounded-xl, text-xs font-bold. Ativa: gradient + shadow
+                        + scale-105 + border-2 white/30. Inativa: bg-white/80 + border slate-200</div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ============ GALLERY ============ -->
+        <div class="screen" id="gallery">
+            <div class="screen-head">
+                <div class="icon" style="background:#ec489920">📸</div>
+                <div>
+                    <h2>Galeria de Fotos</h2>
+                    <div class="tech">PhotoGalleryModal</div>
+                    <div class="file">📁 src/features/Gallery/PhotoGalleryModal.jsx (349 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="layer modal" data-label="Overlay Modal">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Backdrop</span><span
+                            class="desc">fixed inset-0, z-[100], bg-black/80, backdrop-blur-md, flex center,
+                            animate-fade-in</span><span class="size">100vw × 100vh</span></div>
+                    <div class="layer container-l" data-label="Modal Container">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Modal Box</span><span
+                                class="desc">max-w-5xl, h-[90vh], bg-white, rounded-2xl, border-2 slate-300, shadow-2xl,
+                                flex-col</span><span class="size">max 1024px × 90vh</span></div>
+                        <div class="layer container-l" data-label="Modal Header">
+                            <div class="elem"><span class="tag div">DIV</span><span class="name">Header</span><span
+                                    class="desc">bg-gradient emerald-50→teal-50, p-5, border-b-2 slate-200, flex
+                                    between</span><span class="size">100% × auto</span></div>
+                            <div class="elem"><span class="tag icon">ICON</span><span class="name">Camera
+                                    Icon</span><span class="desc">Camera (lucide), w-8 h-8, emerald-600</span><span
+                                    class="size">32×32px</span></div>
+                            <div class="elem"><span class="tag text">H2</span><span class="name">"Álbum de
+                                    Memórias"</span><span class="desc">emerald-700, font-serif, text-2xl,
+                                    font-bold</span><span class="size">auto</span></div>
+                            <div class="elem"><span class="tag text">P</span><span class="name">"Curadoria visual de:
+                                    [Nome]"</span><span class="desc">text-slate-600, text-sm</span><span
+                                    class="size">auto</span></div>
+                            <div class="elem"><span class="tag btn">BTN</span><span class="name">Botão Fechar
+                                    (X)</span><span class="desc">w-10 h-10, rounded-full, bg-slate-100, SVG X
+                                    24×24</span><span class="size">40×40px</span></div>
+                        </div>
+                        <div class="layer container-l" data-label="Área de Conteúdo (scroll)">
+                            <div class="elem"><span class="tag div">DIV</span><span class="name">Content
+                                    Area</span><span class="desc">flex-1, overflow-y-auto, p-6, bg-slate-50</span><span
+                                    class="size">100% × flex</span></div>
+                            <div class="elem"><span class="tag div">DIV</span><span class="name">Dropzone
+                                    Upload</span><span class="desc">border-2 dashed, rounded-xl, p-8, drag&drop
+                                    suportado</span><span class="size">100%</span></div>
+                            <div class="elem"><span class="tag btn">BTN</span><span class="name">"Escanear Foto"
+                                    (câmera)</span><span class="desc">gradient emerald→teal, text-white, py-4 px-6,
+                                    rounded-xl, shadow-lg</span><span class="size">flex-1 × 56px</span></div>
+                            <div class="elem"><span class="tag btn">BTN</span><span class="name">"Galeria / PC"
+                                    (arquivos)</span><span class="desc">bg-slate-200, text-slate-700, py-4 px-6,
+                                    rounded-xl</span><span class="size">flex-1 × 56px</span></div>
+                            <hr class="sep">
+                            <div class="layer component" data-label="GalleryItem (por foto)">
+                                <div class="elem"><span class="tag div">DIV</span><span class="name">Item
+                                        Container</span><span class="desc">flex gap-4, p-4, bg-slate-50, border-2
+                                        slate-200, rounded-xl</span><span class="size">100%</span></div>
+                                <div class="elem"><span class="tag img">IMG</span><span
+                                        class="name">Miniatura</span><span class="desc">w-24 h-24, rounded-lg,
+                                        object-cover, border-2 slate-300, click → abre em nova aba</span><span
+                                        class="size">96×96px</span></div>
+                                <div class="elem"><span class="tag text">SPAN</span><span class="name">Nome
+                                        Arquivo</span><span class="desc">text-[10px], uppercase tracking-wider, truncate
+                                        max-w-[200px]</span><span class="size">auto</span></div>
+                                <div class="elem"><span class="tag input">TEXTAREA</span><span
+                                        class="name">Legenda</span><span class="desc">bg-white, border-2 slate-300,
+                                        rounded-lg, rows=2, auto-save onBlur</span><span class="size">flex-1</span>
+                                </div>
+                                <div class="elem"><span class="tag btn">BTN</span><span class="name">Excluir
+                                        (lixeira)</span><span class="desc">SVG trash 20×20, text-slate-400
+                                        hover:text-red-600</span><span class="size">20×20px</span></div>
+                            </div>
+                        </div>
+                        <div class="layer container-l" data-label="Footer">
+                            <div class="elem"><span class="tag div">DIV</span><span class="name">Footer</span><span
+                                    class="desc">p-4, border-t-2 slate-200, bg-white, flex justify-end</span><span
+                                    class="size">100%</span></div>
+                            <div class="elem"><span class="tag btn">BTN</span><span class="name">"Concluir e
+                                    Voltar"</span><span class="desc">Button variant=primary — gradient
+                                    emerald→teal</span><span class="size">auto × 48px</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ RECIPES ============ -->
+        <div class="screen" id="recipes">
+            <div class="screen-head">
+                <div class="icon" style="background:#ef444420">🍳</div>
+                <div>
+                    <h2>Receitas da Família</h2>
+                    <div class="tech">RecipesPage</div>
+                    <div class="file">📁 src/features/Recipes/RecipesPage.jsx (370 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="screenshot"><img src="screenshots/05_receitas.png" alt="Receitas">
+                    <p>📸 Print da tela real</p>
+                </div>
+                <div class="layer component" data-label="Página Completa">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Page Root</span><span
+                            class="desc">min-h-screen, bg-gradient rose-50 → pink-50 → white</span><span
+                            class="size">100%</span></div>
+                    <div class="layer container-l" data-label="Header Receitas (sticky)">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Header</span><span
+                                class="desc">bg-white/80, backdrop-blur-md, border-b-2 rose-200, sticky top-0
+                                z-40</span><span class="size">100%</span></div>
+                        <div class="elem"><span class="tag btn">BTN</span><span class="name">Botão Voltar
+                                (←)</span><span class="desc">p-2, hover:bg-rose-100, SVG chevron 24×24
+                                rose-600</span><span class="size">40×40px</span></div>
+                        <div class="elem"><span class="tag icon">ICON</span><span class="name">ChefHat</span><span
+                                class="desc">lucide ChefHat, w-8 h-8, rose-600</span><span class="size">32×32px</span>
+                        </div>
+                        <div class="elem"><span class="tag text">H1</span><span class="name">"Receitas de
+                                Família"</span><span class="desc">text-3xl, font-serif bold, text-slate-800</span><span
+                                class="size">auto</span></div>
+                        <div class="elem"><span class="tag btn">BTN</span><span class="name">"Nova Receita"</span><span
+                                class="desc">gradient rose-500→pink-600, text-white, px-6 py-3, rounded-xl, shadow-lg,
+                                icon Plus 20×20</span><span class="size">auto × 48px</span></div>
+                    </div>
+                    <div class="layer container-l" data-label="Busca + Filtros">
+                        <div class="elem"><span class="tag input">INPUT</span><span class="name">Campo Busca</span><span
+                                class="desc">pl-12 pr-4 py-4, rounded-xl, border-2 rose-200, icon Search 20×20 absolute
+                                left</span><span class="size">100% × 56px</span></div>
+                        <div class="elem"><span class="tag btn">BTN×5</span><span class="name">Filtros de
+                                Categoria</span><span class="desc">"Todas", "Shabat", "Pessach", "Rosh Hashaná",
+                                "Diário" — px-6 py-3, rounded-xl, border-2 rose-200, badge de contagem</span><span
+                                class="size">auto × 48px cada</span></div>
+                    </div>
+                    <div class="layer container-l" data-label="Grid de Receitas">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Grid</span><span
+                                class="desc">grid cols-1 md:2 lg:3, gap-6</span><span class="size">max 1280px</span>
+                        </div>
+                        <div class="layer component" data-label="RecipeCard">
+                            <div class="elem"><span class="tag btn">BTN</span><span class="name">Card de
+                                    Receita</span><span class="desc">bg-white, rounded-2xl, p-6, shadow-md, border-2
+                                    rose-100, hover:shadow-2xl hover:-translate-y-1</span><span class="size">1/3
+                                    grid</span></div>
+                            <div class="elem"><span class="tag text">H3</span><span class="name">Título</span><span
+                                    class="desc">text-xl, font-serif bold — ex: "Gefilte Fish da Vovó"</span><span
+                                    class="size">auto</span></div>
+                            <div class="elem"><span class="tag icon">ICON</span><span class="name">Coração
+                                    Favorito</span><span class="desc">Heart 24×24, rose-500 fill —
+                                    condicional</span><span class="size">24×24px</span></div>
+                            <div class="elem"><span class="tag text">SPAN×2</span><span class="name">Meta
+                                    Info</span><span class="desc">Clock + tempo, Users + rendimento — text-sm,
+                                    gap-4</span><span class="size">auto</span></div>
+                            <div class="elem"><span class="tag text">SPAN×2</span><span class="name">Tags</span><span
+                                    class="desc">Categoria (bg-rose-100, px-3 py-1, rounded-full) + Dificuldade
+                                    (bg-slate-100)</span><span class="size">auto</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ============ ACCOUNT ============ -->
+        <div class="screen" id="account">
+            <div class="screen-head">
+                <div class="icon" style="background:#6366f120">⚙️</div>
+                <div>
+                    <h2>Minha Conta</h2>
+                    <div class="tech">AccountSettings</div>
+                    <div class="file">📁 src/features/Account/AccountSettings.jsx (288 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="screenshot"><img src="screenshots/06_minha_conta.png" alt="Minha Conta">
+                    <p>📸 Print da tela real</p>
+                </div>
+                <div class="layer component" data-label="Card Principal">
+                    <div class="elem"><span class="tag div">DIV</span><span class="name">Account Card</span><span
+                            class="desc">max-w-2xl mx-auto, bg-white, p-6, rounded-xl, shadow-lg, mt-10</span><span
+                            class="size">max 672px</span></div>
+                    <div class="elem"><span class="tag text">H2</span><span class="name">"Minha Conta"</span><span
+                            class="desc">text-2xl, font-bold, slate-800, icon User (lucide), flex items-center
+                            gap-2</span><span class="size">auto</span></div>
+                    <div class="grid2">
+                        <div class="elem"><span class="tag text">SPAN</span><span class="name">Badge Plano</span><span
+                                class="desc">"Master"/"Basic" — text-xs bold, bg-amber-100, text-amber-900, px-2 py-1,
+                                rounded, uppercase</span><span class="size">auto</span></div>
+                        <div class="elem"><span class="tag text">SPAN</span><span class="name">Badge Papel</span><span
+                                class="desc">"Representante"/"Membro" — text-xs, bg-sky-50, text-sky-700, rounded-full,
+                                px-3 py-1</span><span class="size">auto</span></div>
+                    </div>
+                    <div class="elem"><span class="tag text">P</span><span class="name">Texto Explicativo</span><span
+                            class="desc">text-sm, text-slate-500, mb-6</span><span class="size">auto</span></div>
+                    <hr class="sep">
+                    <div class="elem"><span class="tag input">INPUT</span><span class="name">Nome do Representante
+                            *</span><span class="desc">type=text, p-2, border slate-300, rounded-lg, icon User
+                            14px</span><span class="size">100% × 40px</span></div>
+                    <div class="elem"><span class="tag input">INPUT</span><span class="name">Profissão</span><span
+                            class="desc">type=text, placeholder="Ex: Engenheiro...", icon Briefcase 14px</span><span
+                            class="size">100% × 40px</span></div>
+                    <div class="layer container-l" data-label="Selfie Zone">
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Área da Selfie</span><span
+                                class="desc">my-6, text-center, p-4, bg-slate-50, rounded-lg, border dashed
+                                slate-200</span><span class="size">100%</span></div>
+                        <div class="elem"><span class="tag img">IMG</span><span class="name">Foto de Perfil</span><span
+                                class="desc">w-32 h-32, rounded-full, object-cover, border-4 blue-500,
+                                shadow-md</span><span class="size">128×128px</span></div>
+                        <div class="elem"><span class="tag btn">BTN</span><span class="name">"Atualizar Selfie" / "Tirar
+                                Selfie"</span><span class="desc">bg-blue-600, text-white, px-4 py-2, rounded-lg, icon
+                                Camera 18px</span><span class="size">auto × 40px</span></div>
+                        <div class="elem"><span class="tag div">DIV</span><span class="name">Camera View
+                                (condicional)</span><span class="desc">bg-black, rounded-lg, max-w-sm. VIDEO w-full
+                                h-64, botão "Capturar Foto" absolute bottom</span><span class="size">max 384px ×
+                                256px</span></div>
+                    </div>
+                    <div class="elem"><span class="tag input">PHONE</span><span class="name">Telefone
+                            (WhatsApp)</span><span class="desc">PhoneInput (react-phone-input-2) — country='br', h-42px,
+                            icon Smartphone 14px</span><span class="size">100% × 42px</span></div>
+                    <div class="elem"><span class="tag input">INPUT</span><span class="name">E-mail (Login)</span><span
+                            class="desc">disabled, bg-slate-100, text-slate-500, cursor-not-allowed</span><span
+                            class="size">100% × 40px</span></div>
+                    <div class="elem"><span class="tag input">DIV</span><span class="name">Cidade Atual</span><span
+                            class="desc">AutoLocationSelector — Google Places autocomplete, icon MapPin 14px</span><span
+                            class="size">100%</span></div>
+                    <hr class="sep">
+                    <div class="elem"><span class="tag btn">BTN</span><span class="name">"Salvar e
+                            Continuar"</span><span class="desc">w-full, bg-green-600, text-white, py-3, rounded-lg,
+                            text-lg, icon Save (lucide)</span><span class="size">100% × 52px</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ UI BASE ============ -->
+        <div class="screen" id="ui">
+            <div class="screen-head">
+                <div class="icon" style="background:#64748b20">🧩</div>
+                <div>
+                    <h2>Componentes UI Base</h2>
+                    <div class="tech">Button + Input</div>
+                    <div class="file">📁 src/components/common/UI.jsx (83 linhas)</div>
+                </div>
+            </div>
+            <div class="screen-body">
+                <div class="layer component" data-label="Button (4 variantes)">
+                    <div class="elem"><span class="tag btn">PRIMARY</span><span class="name">Button Primary</span><span
+                            class="desc">gradient emerald-600→teal-700, text-white, shadow-lg emerald-900/30, border-2
+                            white/20</span><span class="size">px-6 py-3 = ~48px</span></div>
+                    <div class="elem"><span class="tag btn">SECONDARY</span><span class="name">Button
+                            Secondary</span><span class="desc">gradient amber-500→yellow-600, text-white, shadow-lg
+                            amber-900/30</span><span class="size">px-6 py-3</span></div>
+                    <div class="elem"><span class="tag btn">OUTLINE</span><span class="name">Button Outline</span><span
+                            class="desc">border-2 slate-300, bg-white, text-slate-700, shadow-md</span><span
+                            class="size">px-6 py-3</span></div>
+                    <div class="elem"><span class="tag btn">GHOST</span><span class="name">Button Ghost</span><span
+                            class="desc">text-slate-600, hover:bg-slate-100, no shadow, px-4</span><span
+                            class="size">px-4 py-3</span></div>
+                    <div class="note">📐 Base: rounded-xl, font-semibold, transition 300ms, active:scale-95,
+                        disabled:opacity-50</div>
+                </div>
+                <hr class="sep">
+                <div class="layer component" data-label="Input (com toggle senha)">
+                    <div class="elem"><span class="tag input">BASE</span><span class="name">Input Base</span><span
+                            class="desc">w-full px-4 py-3.5, rounded-xl, border-2, bg-white, transition
+                            300ms</span><span class="size">100% × 54px</span></div>
+                    <div class="elem"><span class="tag text">LABEL</span><span class="name">Label</span><span
+                            class="desc">text-sm, font-semibold, text-slate-700, tracking-wide</span><span
+                            class="size">auto</span></div>
+                    <div class="elem"><span class="tag text">SPAN</span><span class="name">Erro</span><span
+                            class="desc">text-xs, text-red-600, icon SVG circle 16×16</span><span
+                            class="size">auto</span></div>
+                    <div class="note">📐 Estados: Normal (border-slate-300) → Focus (border-emerald-500, ring-4
+                        emerald-100) → Error (border-red-400, ring-4 red-100). Senha: botão Eye/EyeOff 20×20 absolute
+                        right-4</div>
+                </div>
+                <hr class="sep">
+                <div class="layer layout" data-label="Design Tokens (index.css)">
+                    <div class="grid2">
+                        <div class="elem"><span class="tag text">COR</span><span class="name">history-green</span><span
+                                class="desc">#2F4F4F — cor principal (Dark Slate Gray)</span><span class="size">—</span>
+                        </div>
+                        <div class="elem"><span class="tag text">COR</span><span class="name">parchment</span><span
+                                class="desc">#F5F5DC — fundo base (Beige)</span><span class="size">—</span></div>
+                        <div class="elem"><span class="tag text">COR</span><span class="name">gold-accent</span><span
+                                class="desc">#DAA520 — dourado destaque (Goldenrod)</span><span class="size">—</span>
+                        </div>
+                        <div class="elem"><span class="tag text">FONT</span><span class="name">font-serif /
+                                font-sans</span><span class="desc">"Inter", sans-serif</span><span class="size">—</span>
+                        </div>
+                        <div class="elem"><span class="tag text">FONT</span><span class="name">font-playfair</span><span
+                                class="desc">"Playfair Display", serif — títulos decorativos</span><span
+                                class="size">—</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <footer style="text-align:center;padding:40px;color:#64748b;font-size:12px;border-top:1px solid #334155">
+        <strong style="color:#f8fafc">Anatomia das Telas — Livrão da Família</strong><br>
+        Gerado em 23/02/2026 • Análise completa de 11 componentes • v1.5 Beta
+    </footer>
+</body>
+
+</html>

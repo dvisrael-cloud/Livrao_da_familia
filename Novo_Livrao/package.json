@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "react-icons": "^5.5.0"
+  }
+}

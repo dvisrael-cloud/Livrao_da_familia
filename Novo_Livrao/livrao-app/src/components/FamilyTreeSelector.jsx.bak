@@ -1,0 +1,1497 @@
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { Users, Fingerprint, AlertTriangle, Trash2, Plus, X } from 'lucide-react';
+
+const DEPLOY_VERSION = Date.now(); // Versão estável por sessão para limpar o cache das fotos
+
+// Função auxiliar movida para fora para otimizar a performance
+const calculateProgress = (data) => {
+    if (!data) return 0;
+    const baseFields = ['nomeCompleto', 'dataNascimento', 'localNascimento_cidade', 'localNascimento_pais', 'religiao', 'nomePai', 'nomeMae', 'situacaoConjugal', 'situacaoVital', 'biography', 'resumoHistorico'];
+    let filled = 0;
+    let total = baseFields.length + 1;
+    baseFields.forEach(f => { if (data[f] && typeof data[f] === 'string' && data[f].trim() !== '') filled++; });
+    if (data.fotoIdentificacao?.length > 0 || data.photoMain) filled++;
+
+    if (data.situacaoVital === 'Falecido') {
+        const deathFields = ['dataFalecimento', 'localFalecimento_cidade', 'causaMorte'];
+        total += deathFields.length;
+        deathFields.forEach(f => { if (data[f] && typeof data[f] === 'string' && data[f].trim() !== '') filled++; });
+    }
+    return Math.round((filled / total) * 100);
+};
+
+export const FamilyTreeSelector = ({
+    value,
+    onChange,
+    membersData = {},
+    onNext,
+    onDeleteMember,
+    onArchiveAllOthers,
+    onArchiveMember,
+    onAcceptDuplicate,
+    representativeName = '',
+    representativePhone = ''
+}) => {
+    const containerRef = useRef(null);
+    const [expandedRole, setExpandedRole] = useState(null);
+    const [showOutroModal, setShowOutroModal] = useState(false);
+    const [outroModalStep, setOutroModalStep] = useState(1);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [systemNotifications, setSystemNotifications] = useState([]);
+    const [attentionNeeded, setAttentionNeeded] = useState({ ids: new Set(), names: new Set() });
+    
+    // Novas Abas Laterais
+    const [showDuplicateDrawer, setShowDuplicateDrawer] = useState(false);
+    const [showIncompleteDrawer, setShowIncompleteDrawer] = useState(false);
+    const [duplicateMembersList, setDuplicateMembersList] = useState([]);
+    const [incompleteMembersList, setIncompleteMembersList] = useState([]);
+    const [acceptedDuplicates, setAcceptedDuplicates] = useState(new Set());
+
+    useEffect(() => {
+        if (!membersData) return;
+
+        const alerts = [];
+        const memberTagsMap = {};
+        let hasLegacyRecords = false;
+        
+        const membersList = [];
+        Object.keys(membersData).forEach(key => {
+            const member = membersData[key];
+            if (!member) return;
+
+            // Identifica se há registros no formato antigo (sem ID único)
+            if (!member.id) hasLegacyRecords = true;
+
+            const baseName = (member.nomeCompleto || '').trim().toLowerCase();
+            const bDate = (member.dataNascimento || '').trim();
+            
+            if (baseName) {
+                membersList.push({ key, baseName, bDate });
+            }
+        });
+
+        const duplicates = [];
+        membersList.forEach(m => {
+            const matches = membersList.filter(o => o.key !== m.key && o.baseName === m.baseName);
+            if (matches.length > 0) {
+                const hasD = matches.some(o => o.bDate === m.bDate);
+                const hasH = matches.some(o => o.bDate !== m.bDate);
+                const isAccepted = membersData[m.key]?.duplicateAccepted || matches.some(o => membersData[o.key]?.duplicateAccepted) || acceptedDuplicates.has(m.baseName);
+                
+                memberTagsMap[m.key] = { isD: hasD && !isAccepted, isH: hasH && !isAccepted };
+                
+                if (!isAccepted) {
+                    duplicates.push({ key: m.key, member: membersData[m.key], isD: hasD, isH: hasH, baseName: m.baseName });
+                }
+            }
+        });
+
+        // Agrupados sem duplicatas no array de estado
+        const uniqueDups = Array.from(new Map(duplicates.map(item => [item.key, item])).values());
+        setDuplicateMembersList(uniqueDups);
+
+        const hasAnyD = uniqueDups.some(t => t.isD);
+        const hasAnyH = uniqueDups.some(t => t.isH);
+
+        // Banner de alerta geral para Duplicatas e Homônimos
+        if (hasAnyD || hasAnyH) {
+            alerts.push({
+                id: 'duplicate_warning',
+                type: 'warning',
+                text: 'Membros com dados iguais ou parecidos encontrados ',
+                action: {
+                    label: 'clique aqui para confirmar ou ajustar',
+                    handler: () => setShowDuplicateDrawer(true),
+                    autoDismiss: false
+                }
+            });
+        } else if (hasLegacyRecords) {
+            alerts.push({
+                id: 'legacy_warning',
+                type: 'info',
+                text: 'Para garantir a melhor experiência e evitar duplicados, recomendamos abrir e salvar os perfis que ainda não possuem o novo selo de identidade.'
+            });
+        }
+
+        const incompleteMembers = [];
+        Object.keys(membersData).forEach(key => {
+            const m = membersData[key];
+            if (!m) return;
+            if (!m.nomeCompleto || !m.dataNascimento) {
+                incompleteMembers.push({ key, member: m });
+            }
+        });
+        setIncompleteMembersList(incompleteMembers);
+
+        if (incompleteMembers.length > 0) {
+            alerts.push({
+                id: 'incomplete_warning',
+                type: 'info',
+                text: 'Existem cadastros com informaçoes importante pendentes, ',
+                action: {
+                    label: 'clique aqui para ajustar',
+                    handler: () => setShowIncompleteDrawer(true),
+                    autoDismiss: false
+                }
+            });
+        }
+
+        setAttentionNeeded(memberTagsMap || {});
+        setSystemNotifications(alerts);
+    }, [membersData, onArchiveAllOthers, acceptedDuplicates]);
+
+    const getNextOutroIndex = () => {
+        const outroKeys = Object.keys(membersData || {}).filter(k => k.startsWith('Outro '));
+        const indices = outroKeys
+            .map(k => parseInt(k.split(' ')[1], 10))
+            .filter(n => !Number.isNaN(n));
+        const maxIndex = indices.length ? Math.max(...indices) : 0;
+        return maxIndex + 1;
+    };
+
+    const GRID_COLS = 34;
+    const GRID_ROWS = 65;
+    const SCALE_FACTOR = 1.3;
+    const CARD_H = 3.90;
+    const V_STEP = 5.5;
+    const START_Y = 24.5;
+    const RIGHT_X = 25.0;
+    const RIGHT_W = 5.84;
+    const LEFT_W = 5.84;
+    const COL_X = 1.0;
+
+    const familyButtonsGrid = useMemo(() => [
+        // NÍVEL 4: BISAVÓS (MINI)
+        { role: 'Pai do Avô Paterno', label: 'BISAVÔ', x: 1.68, y: 1.5, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Mãe do Avô Paterno', label: 'BISAVÓ', x: 1.68, y: 6.7, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Pai da Avó Paterna', label: 'BISAVÔ', x: 9.54, y: 1.5, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Mãe da Avó Paterna', label: 'BISAVÓ', x: 9.54, y: 6.7, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Pai do Avô Materno', label: 'BISAVÔ', x: 17.98, y: 1.5, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Mãe do Avô Materno', label: 'BISAVÓ', x: 17.98, y: 6.7, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Pai da Avó Materna', label: 'BISAVÔ', x: 25.99, y: 1.5, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Mãe da Avó Materna', label: 'BISAVÓ', x: 25.99, y: 6.7, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+
+        // NÍVEL 3: AVÓS (MINI)
+        { role: 'Avô Paterno', label: 'AVÔ PATERNO', x: 1.68, y: 12.5, w: 5.84, h: 3.90, level: 3, type: 'avo', size: 'mini' },
+        { role: 'Avó Paterna', label: 'AVÓ PATERNA', x: 9.54, y: 12.5, w: 5.84, h: 3.90, level: 3, type: 'avo', size: 'mini' },
+        { role: 'Avô Materno', label: 'AVÔ MATERNO', x: 17.98, y: 12.5, w: 5.84, h: 3.90, level: 3, type: 'avo', size: 'mini' },
+        { role: 'Avó Materna', label: 'AVÓ MATERNA', x: 25.99, y: 12.5, w: 5.84, h: 3.90, level: 3, type: 'avo', size: 'mini' },
+
+        // NÍVEL 2: PAIS (MÉDIO)
+        { role: 'Pai', label: 'PAI', x: 3.53, y: 18.5, w: 10.00, h: 3.90, level: 2, type: 'pai', size: 'medio' },
+        { role: 'Mãe', label: 'MÃE', x: 19.90, y: 18.5, w: 10.00, h: 3.90, level: 2, type: 'mae', size: 'medio' },
+
+        // NÍVEL 1: REPRESENTANTE (GRANDE)
+        { role: 'Eu mesmo', label: 'REPRESENTANTE FAMILIAR', x: 11.715, y: 24.5, w: 10.00, h: 3.90, level: 1, type: 'representante', size: 'grande' },
+    ], []);
+
+    const familyButtons = useMemo(() => {
+        const gridWithSpouse = [...familyButtonsGrid];
+        const repData = membersData['Eu mesmo'] || {};
+        const isMarried = ['Casado', 'Divorciado', 'Viúvo', 'União Estável'].includes(repData.situacaoConjugal);
+
+        const MARRIAGE_LEVELS = [
+            { suffix: '', role: 'Cônjuge', label: 'ESPOSO(A)', active: isMarried },
+            { suffix: '_2', role: 'Cônjuge 2', label: 'ESPOSO(A)', active: !!repData.remarried_1 },
+            { suffix: '_3', role: 'Cônjuge 3', label: 'ESPOSO(A)', active: !!repData.remarried_2 },
+            { suffix: '_4', role: 'Cônjuge 4', label: 'ESPOSO(A)', active: !!repData.remarried_3 }
+        ];
+
+        let rightIdx = 0;
+        let globalChildIdx = 0;
+
+        MARRIAGE_LEVELS.forEach((m) => {
+            if (m.active) {
+                gridWithSpouse.push({
+                    role: m.role, label: m.label, x: RIGHT_X, y: START_Y + rightIdx * V_STEP,
+                    w: RIGHT_W, h: CARD_H, level: 1, type: 'conjuge', size: 'mini'
+                });
+                rightIdx++;
+
+                const marriageChildren = [];
+                const childrenText = repData[`children${m.suffix}`] || '';
+                if (childrenText) marriageChildren.push(...childrenText.split(',').map(c => c.trim()).filter(Boolean));
+                for (let i = 1; i <= 12; i++) {
+                    const name = repData[`nomeFilho${i}${m.suffix}`];
+                    if (name) marriageChildren.push(name.trim());
+                }
+
+                [...new Set(marriageChildren)].forEach((childName) => {
+                    // Verificação para evitar duplicados no Grid SVG
+                    const realMemberKey = Object.keys(membersData).find(k => {
+                        const m = membersData[k];
+                        const p = (m?.relationshipInfo?.parentesco || m?.parentesco || '').toLowerCase();
+                        return (p.includes('filho') || p.includes('filha')) &&
+                            (m.nomeCompleto?.trim() === childName.trim());
+                    });
+
+                    if (!realMemberKey) {
+                        gridWithSpouse.push({
+                            role: `__filho_${globalChildIdx}`, label: `FILHO(A)`,
+                            x: RIGHT_X, y: START_Y + rightIdx * V_STEP, w: RIGHT_W, h: CARD_H,
+                            level: 1, type: 'filho_individual', size: 'mini', childName, parentMarriage: m.role
+                        });
+                        rightIdx++;
+                    }
+                    globalChildIdx++;
+                });
+            }
+        });
+
+        // ==========================================
+        // COLATERAIS E OUTROS FORAM REMOVIDOS DO GRID ABSOLUTO SVG
+        // A lógica agora é tratada por categorizeMembers e renderizado em flex-cols
+        // ==========================================
+
+        const toPct = (val, total) => (val / total) * 100;
+
+        return gridWithSpouse.map(btn => {
+            if (btn.role === 'Eu mesmo') {
+                const m = membersData['Eu mesmo'] || {};
+                return {
+                    ...btn,
+                    nome: m.nomeCompleto || m.fullName || representativeName || 'Eu mesmo',
+                    phone: m.repPhone || representativePhone || '',
+                    id_unico: m.id_unico || '',
+                    status_vital: m.status_vital || m.vitalStatus || 'Vivo',
+                    photoURL: m.photoURL || '',
+                    x: toPct(btn.x, GRID_COLS) - (toPct(btn.w, GRID_COLS) * SCALE_FACTOR - toPct(btn.w, GRID_COLS)) / 2,
+                    y: toPct(btn.y, GRID_ROWS) - (toPct(btn.h, GRID_ROWS) * SCALE_FACTOR - toPct(btn.h, GRID_ROWS)) / 2,
+                    w: toPct(btn.w, GRID_COLS) * SCALE_FACTOR,
+                    h: toPct(btn.h, GRID_ROWS) * SCALE_FACTOR
+                };
+            }
+
+            const isExpanded = expandedRole === btn.role;
+            const isHalfHeight = btn.h < 2.0 && btn.h >= 1.0;
+            const isQuarterHeight = btn.h < 1.0;
+
+            let finalWidth = toPct(btn.w, GRID_COLS) * SCALE_FACTOR;
+            let finalHeight = toPct(btn.h, GRID_ROWS) * SCALE_FACTOR;
+
+            if (isExpanded && btn.size === 'mini') {
+                finalWidth *= 1.4;
+            }
+
+            const xOffset = (finalWidth - toPct(btn.w, GRID_COLS)) / 2;
+            const yOffset = (finalHeight - toPct(btn.h, GRID_ROWS)) / 2;
+
+            return {
+                ...btn,
+                rawX: btn.x, // SALVA A COORDENADA MATEMÁTICA PARA O SVG
+                rawY: btn.y, // SALVA A COORDENADA MATEMÁTICA PARA O SVG
+                x: toPct(btn.x, GRID_COLS) - xOffset,
+                y: toPct(btn.y, GRID_ROWS) - yOffset,
+                w: finalWidth,
+                h: finalHeight,
+                isHalfHeight,
+                isQuarterHeight
+            };
+        });
+    }, [membersData, expandedRole, familyButtonsGrid]);
+
+    const renderConnections = () => {
+        const find = (r) => familyButtonsGrid.find(b => b.role === r);
+
+        const drawL = (childR, p1R, p2R) => {
+            const c = find(childR), p1 = find(p1R), p2 = find(p2R);
+            if (!c || !p1 || !p2) return null;
+            const px = (p1.x + p1.w / 2 + p2.x + p2.w / 2) / 2;
+            const py = Math.max(p1.y + p1.h, p2.y + p2.h);
+            const my = (c.y + py) / 2;
+            return <path key={`v-${childR}`} d={`M ${c.x + c.w / 2} ${c.y} L ${c.x + c.w / 2} ${my} L ${px} ${my} L ${px} ${py}`} opacity={expandedRole ? 0.2 : 1} className="transition-opacity duration-500" fill="none" stroke="#cbd5e1" strokeWidth="0.15" strokeLinejoin="round" />;
+        };
+
+        const drawBridge = (p1R, p2R) => {
+            const p1 = find(p1R), p2 = find(p2R);
+            if (!p1 || !p2) return null;
+            const y = Math.max(p1.y + p1.h, p2.y + p2.h);
+            return <line key={`b-${p1R}-${p2R}`} x1={p1.x + p1.w / 2} y1={y} x2={p2.x + p2.w / 2} y2={y} opacity={expandedRole ? 0.2 : 1} className="transition-opacity duration-500" stroke="#cbd5e1" strokeWidth="0.15" />;
+        };
+
+        return [
+            drawBridge('Pai', 'Mãe'),
+            drawBridge('Avó Paterna', 'Avô Paterno'),
+            drawBridge('Avó Materna', 'Avô Materno'),
+            drawBridge('Pai da Avó Paterna', 'Mãe da Avó Paterna'),
+            drawBridge('Pai do Avô Paterno', 'Mãe do Avô Paterno'),
+            drawBridge('Pai da Avó Materna', 'Mãe da Avó Materna'),
+            drawBridge('Pai do Avô Materno', 'Mãe do Avô Materno'),
+            drawL('Eu mesmo', 'Pai', 'Mãe'),
+            drawL('Pai', 'Avó Paterna', 'Avô Paterno'),
+            drawL('Mãe', 'Avó Materna', 'Avô Materno'),
+            drawL('Avó Paterna', 'Pai da Avó Paterna', 'Mãe da Avó Paterna'),
+            drawL('Avô Paterno', 'Pai do Avô Paterno', 'Mãe do Avô Paterno'),
+            drawL('Avó Materna', 'Pai da Avó Materna', 'Mãe da Avó Materna'),
+            drawL('Avô Materno', 'Pai do Avô Materno', 'Mãe do Avô Materno')
+        ];
+    };
+
+    const renderChildrenConnections = () => {
+        // Conexões filhas desativadas, pois cônjuges e descendentes 
+        // agora vivem no Kanban Panel organizado em colunas
+        return null;
+    };
+
+    // ==========================================
+    // CONEXÕES DA COLUNA ESQUERDA (DESATIVADAS)
+    // ==========================================
+    const renderCollateralConnections = () => {
+        // As linhas de conexão para tios e irmãos foram removidas 
+        // para manter o design da interface limpo (Clean UI).
+        // A lista lateral funciona de forma independente.
+        return null;
+    };
+
+    const getButtonStyle = (button) => {
+        const isSelected = value?.papel === button.role;
+        const isExpanded = expandedRole === button.role;
+        const shared = "absolute transition-all duration-500 rounded-lg border-[1.5px] md:border-2 !border-cyan-800 font-bold flex flex-col items-center md:shadow-sm shadow-none md:bg-white bg-transparent";
+        const overflowClass = isExpanded ? "" : "overflow-hidden";
+        const dimClass = expandedRole && !isExpanded ? "opacity-30 scale-90 grayscale-[0.5]" : "opacity-100";
+
+        if (isExpanded) {
+            return {
+                className: `${shared} ${overflowClass} z-[110] scale-125 shadow-2xl ring-4 ring-slate-400/20 bg-white border-stone-400 text-slate-800`,
+                style: {}
+            };
+        }
+
+        let theme = { from: '#FFFFFF', to: '#F8F9FA', border: '#E2E8F0', text: '#1E293B', ring: 'ring-slate-200' };
+
+        if (button.type === 'conjuge' || button.type === 'filho_individual') {
+            const role = button.type === 'conjuge' ? button.role : button.parentMarriage;
+            theme = { from: '#FFFFFF', to: '#F9FAFB', border: '#E2E8F0', text: '#475569', ring: 'ring-slate-200' };
+
+            if (role === 'Cônjuge') theme = { from: '#FFFFFF', to: '#F9FAFB', border: '#CBD5E1', text: '#334155', ring: 'ring-slate-400' };
+            else if (role === 'Cônjuge 2') theme = { from: '#FFFFFF', to: '#F9FAFB', border: '#E2E8F0', text: '#475569', ring: 'ring-slate-300' };
+            else if (role === 'Cônjuge 3') theme = { from: '#FFFFFF', to: '#F9FAFB', border: '#E2E8F0', text: '#475569', ring: 'ring-slate-200' };
+            else if (role === 'Cônjuge 4') theme = { from: '#FFFFFF', to: '#F9FAFB', border: '#F1F5F9', text: '#64748B', ring: 'ring-slate-100' };
+        } else if (button.type === 'outro_parente') {
+            return {
+                className: `${shared} ${overflowClass} ${dimClass} border-dashed border-[#00838F] text-[#006064] hover:bg-[#E0F7FA]`,
+                style: {}
+            };
+        } else {
+            switch (button.level) {
+                case 1: theme = { from: '#FFFFFF', to: '#F8FAFC', border: '#64748B', text: '#0F172A', ring: 'ring-slate-400' }; break;
+                case 2: theme = { from: '#FFFFFF', to: '#F9FAFB', border: '#94A3B8', text: '#1E293B', ring: 'ring-slate-300' }; break;
+                case 3: theme = { from: '#FFFFFF', to: '#F9FAFB', border: '#CBD5E1', text: '#334155', ring: 'ring-slate-200' }; break;
+                default: theme = { from: '#FFFFFF', to: '#F9FAFB', border: '#E2E8F0', text: '#475569', ring: 'ring-slate-100' }; break;
+            }
+        }
+
+        return {
+            className: `${shared} ${overflowClass} ${dimClass} ${isSelected ? theme.ring + ' ring-4' : ''}`,
+            style: {
+                background: `linear-gradient(to bottom, ${theme.from}, ${theme.to})`,
+                borderColor: theme.border,
+                color: theme.text
+            }
+        };
+    };
+
+    // Helper de Categorização (Meticuloso)
+    const categorizeMembers = () => {
+        // Novo grid: colAncestorIrmaos | colFamiliaPaterna | colFamiliaMaterna | colConjugeFilhos
+        const data = {
+            colAncestorIrmaos: [],   // flat: ancestrais + irmãos combinados
+            colFamiliaPaterna: [],   // clan groups: tios/primos do lado paterno
+            colFamiliaMaterna: [],   // clan groups: tios/primos do lado materno
+            colConjugeFilhos:  []    // union groups (inalterado)
+        };
+        const repData = membersData['Eu mesmo'] || {};
+        const seenIds = new Set();
+        const seenNames = new Set();
+
+        const getBaseName = (name) => (name || '').trim().toLowerCase();
+
+        // Tronco Principal (Não entra nas colunas, mas reservamos os nomes)
+        const papeisFixosTronco = [
+            'Eu mesmo', 'Pai', 'Mãe',
+            'Avô Paterno', 'Avó Paterna', 'Avô Materno', 'Avó Materna',
+            'Pai do Avô Paterno', 'Mãe do Avô Paterno', 'Pai da Avó Paterna', 'Mãe da Avó Paterna',
+            'Pai do Avô Materno', 'Mãe do Avô Materno', 'Pai da Avó Materna', 'Mãe da Avó Materna',
+        ];
+
+        papeisFixosTronco.forEach(role => {
+            const m = membersData[role];
+            if (m?.id) seenIds.add(m.id);
+            const name = getBaseName(m?.nomeCompleto);
+            if (name) seenNames.add(name);
+        });
+
+        // Helper: extrai ano de nascimento para ordenação cronológica (mais velho → mais novo)
+        const getBirthYear = (member) => {
+            const d = member?.dataNascimento || '';
+            if (d === '[NÃO SEI]' || d.startsWith('ID_DESCONHECIDO_')) return 9999;
+            const match = d.match(/\d{4}/);
+            return match ? parseInt(match[0], 10) : 9999;
+        };
+
+        // Helper: constrói grupos de clã a partir de uma lista de membros de um mesmo lado
+        // Cada tio vira um bloco-header; primos, sobrinhos e outros ficam em sub-grupos por tipo.
+        const buildClanGroups = (members, clanColor) => {
+            const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const isTio     = (p) => /(^tio|^tia)/.test(norm(p).trim()) && !/(avo|segundo)/.test(norm(p));
+            const isPrimo   = (p) => /primo/.test(norm(p));
+            const isSobrinho= (p) => /sobrinho/.test(norm(p));
+
+            const tios      = members.filter(m => isTio(m.member?.parentesco || ''));
+            const primos    = members.filter(m => isPrimo(m.member?.parentesco || ''));
+            const sobrinhos = members.filter(m => isSobrinho(m.member?.parentesco || ''));
+            const outros    = members.filter(m =>
+                !isTio(m.member?.parentesco || '') &&
+                !isPrimo(m.member?.parentesco || '') &&
+                !isSobrinho(m.member?.parentesco || '')
+            );
+
+            const groups = [];
+
+            // Cada tio → bloco de clã independente
+            tios.sort((a, b) => getBirthYear(a.member) - getBirthYear(b.member));
+            tios.forEach(tio => {
+                const primeiroNome = (tio.member?.nomeCompleto || '').split(' ')[0] || 'Tio';
+                groups.push({
+                    isClanGroup: true,
+                    clanLabel: `Família de ${primeiroNome}`,
+                    clanColor,
+                    clanLeaderKey: tio.key,
+                    members: [tio]
+                });
+            });
+
+            // Primos — sub-grupo único (ainda não linkados a tios específicos por falta de campo)
+            if (primos.length > 0) {
+                primos.sort((a, b) => getBirthYear(a.member) - getBirthYear(b.member));
+                groups.push({ isClanGroup: true, clanLabel: 'Primos', clanColor, clanLeaderKey: null, members: primos });
+            }
+
+            // Sobrinhos — sub-grupo único
+            if (sobrinhos.length > 0) {
+                sobrinhos.sort((a, b) => getBirthYear(a.member) - getBirthYear(b.member));
+                groups.push({ isClanGroup: true, clanLabel: 'Sobrinhos', clanColor, clanLeaderKey: null, members: sobrinhos });
+            }
+
+            // Outros (sem classificação clara)
+            if (outros.length > 0) {
+                outros.sort((a, b) => getBirthYear(a.member) - getBirthYear(b.member));
+                groups.push({ isClanGroup: true, clanLabel: 'Outros', clanColor, clanLeaderKey: null, members: outros });
+            }
+
+            return groups;
+        };
+
+        // Roles de cônjuge tratados explicitamente nos grupos de união
+        const spouseRoles = new Set(['Cônjuge', 'Cônjuge 2', 'Cônjuge 3', 'Cônjuge 4']);
+
+        // ─────────────────────────────────────────────────────────────────────
+        // PASSE 1: Membros reais Não-União
+        // ─────────────────────────────────────────────────────────────────────
+        const realOtherKeys = Object.keys(membersData)
+            .filter(k => !papeisFixosTronco.includes(k) && membersData[k]?.nomeCompleto?.trim());
+
+        const unionRelatedKeySet = new Set();
+        const tempPaterno  = [];   // aguarda buildClanGroups
+        const tempMaterno  = [];   // aguarda buildClanGroups
+        const tempSemLado  = [];   // tios/primos sem (Paterno)/(Materno) → fallback
+        const tempSiblings = [];   // irmãos — aparecem no TOPO da col 1
+        const tempAncestors = [];  // ancestrais distantes — aparecem ABAIXO na col 1
+
+        realOtherKeys.forEach(key => {
+            const member = membersData[key];
+            const raw = member?.relationshipInfo?.parentesco || member?.parentesco || '';
+            const parentesco = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+            const isUnionRelated = spouseRoles.has(key) ||
+                /(filho|neto|bisneto|trineto|conjuge|esposa|marido|companheiro|genro|nora|enteado)/i.test(parentesco);
+
+            if (isUnionRelated) {
+                unionRelatedKeySet.add(key);
+                return;
+            }
+
+            const memberId = member.id || key;
+            if (seenIds.has(memberId)) return;
+            seenIds.add(memberId);
+            const name = getBaseName(member.nomeCompleto);
+            if (name) seenNames.add(name);
+
+            const isAncestry = /(bisavo|trisavo|tataravo|quarto.avo|quinto.avo|sextavo|tio.avo|tio.bisavo|antepassado|avo|padrasto|madrasta)/i.test(parentesco) && !/(filho|neto|bisneto|trineto)/i.test(parentesco);
+            const isSibling  = /(irmao|irma)/i.test(parentesco) && !/(primo|tio|tia)/i.test(parentesco);
+            const isTioPrimo = /(tio|tia|primo|sobrinho|segundo)/i.test(parentesco);
+
+            const isPaterno  = /paterno/i.test(raw);
+            const isMaterno  = /materno/i.test(raw);
+
+            if (isSibling) {
+                // Irmãos → topo da coluna 1
+                tempSiblings.push({ key, member });
+            } else if (isAncestry) {
+                // Ancestrais distantes → abaixo na coluna 1
+                tempAncestors.push({ key, member });
+            } else if (isTioPrimo && isPaterno) {
+                tempPaterno.push({ key, member });
+            } else if (isTioPrimo && isMaterno) {
+                tempMaterno.push({ key, member });
+            } else if (isTioPrimo) {
+                // Sem lado especificado → fallback Sem Lado (renderiza no final de Paterna)
+                tempSemLado.push({ key, member });
+            } else {
+                // fallback geral → trata como ancestral
+                tempAncestors.push({ key, member });
+            }
+        });
+
+        // Col 1: Irmãos primeiro, depois Ancestrais distantes (ambos já ordenados por nascimento)
+        tempSiblings.sort((a, b) => getBirthYear(a.member) - getBirthYear(b.member));
+        tempAncestors.sort((a, b) => getBirthYear(a.member) - getBirthYear(b.member));
+        data.colAncestorIrmaos.push(...tempSiblings, ...tempAncestors);
+
+        // Monta clãs para cada lado
+        data.colFamiliaPaterna.push(...buildClanGroups(tempPaterno, 'indigo'));
+        data.colFamiliaMaterna.push(...buildClanGroups(tempMaterno, 'teal'));
+
+        // Membros sem lado explícito → bloco "Sem classificação" na coluna Paterna
+        if (tempSemLado.length > 0) {
+            tempSemLado.sort((a, b) => getBirthYear(a.member) - getBirthYear(b.member));
+            data.colFamiliaPaterna.push({
+                isClanGroup: true,
+                clanLabel: 'Sem classificação de lado',
+                clanColor: 'gray',
+                clanLeaderKey: null,
+                members: tempSemLado
+            });
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // PASSE 2: Grupos de União — cada casamento = 1 bloco com header,
+        // cônjuge e filhos ordenados por data de nascimento.
+        // ─────────────────────────────────────────────────────────────────────
+        const MARRIAGE_LEVELS = [
+            { suffix: '',   role: 'Cônjuge',   nameField: 'nomeConjuge',  dateField: 'dataCasamento'  },
+            { suffix: '_2', role: 'Cônjuge 2', nameField: 'spouseName_2', dateField: 'marriageDate_2' },
+            { suffix: '_3', role: 'Cônjuge 3', nameField: 'spouseName_3', dateField: 'marriageDate_3' },
+            { suffix: '_4', role: 'Cônjuge 4', nameField: 'spouseName_4', dateField: 'marriageDate_4' },
+        ];
+
+        let globalChildIdx = 0;
+
+        MARRIAGE_LEVELS.forEach(m => {
+            const isActive =
+                membersData[m.role] ||
+                (m.role === 'Cônjuge' && ['Casado', 'Divorciado', 'Viúvo', 'União Estável'].includes(repData.situacaoConjugal)) ||
+                repData[`remarried_${m.suffix.replace('_', '')}`];
+
+            if (!isActive) return;
+
+            // Cônjuge: real (Firestore) ou virtual (campo do rep)
+            const realSpouse  = membersData[m.role];
+            const spouseName  = realSpouse?.nomeCompleto || repData[m.nameField] || '';
+            const spouseMember = realSpouse
+                ? { ...realSpouse, _forceType: 'conjuge', _parentMarriage: m.role }
+                : { nomeCompleto: spouseName, dataCasamento: repData[m.dateField] || '', _forceType: 'conjuge', _parentMarriage: m.role };
+
+            if (realSpouse) {
+                seenIds.add(realSpouse.id || m.role);
+                const sn = getBaseName(realSpouse.nomeCompleto);
+                if (sn) seenNames.add(sn);
+            } else if (spouseName) {
+                seenNames.add(getBaseName(spouseName));
+            }
+
+            // Coleta nomes dos filhos desta união declarados nos campos do representante
+            const marriageChildNames = [];
+            const childrenText = repData[`children${m.suffix}`] || '';
+            if (childrenText) marriageChildNames.push(...childrenText.split(',').map(c => c.trim()).filter(Boolean));
+            for (let i = 1; i <= 12; i++) {
+                const n = repData[`nomeFilho${i}${m.suffix}`];
+                if (n) marriageChildNames.push(n.trim());
+            }
+
+            const groupChildren = [];
+            const childNamesInGroup = new Set();
+
+            [...new Set(marriageChildNames)].forEach(childName => {
+                const cBase = getBaseName(childName);
+                if (!cBase || childNamesInGroup.has(cBase)) return;
+
+                // Tenta encontrar membro real com esse nome
+                const realChildKey = [...unionRelatedKeySet].find(k => {
+                    const cm = membersData[k];
+                    return cm && getBaseName(cm.nomeCompleto) === cBase && !seenIds.has(cm.id || k);
+                });
+
+                if (realChildKey) {
+                    const cm = membersData[realChildKey];
+                    seenIds.add(cm.id || realChildKey);
+                    seenNames.add(cBase);
+                    childNamesInGroup.add(cBase);
+                    groupChildren.push({ key: realChildKey, member: cm });
+                } else if (!seenNames.has(cBase)) {
+                    seenNames.add(cBase);
+                    childNamesInGroup.add(cBase);
+                    groupChildren.push({
+                        key: `__filho_${globalChildIdx}`,
+                        member: {
+                            nomeCompleto: childName,
+                            _forceType: 'filho_individual',
+                            _parentMarriage: m.role,
+                            _childName: childName,
+                            parentesco: spouseName ? `Filho(a) de ${spouseName}` : 'Filho(a)'
+                        }
+                    });
+                }
+                globalChildIdx++;
+            });
+
+            // Ordena filhos por data de nascimento ascendente (mais velho primeiro)
+            groupChildren.sort((a, b) => getBirthYear(a.member) - getBirthYear(b.member));
+
+            data.colConjugeFilhos.push({
+                isUnionGroup: true,
+                spouseKey: m.role,
+                spouseName,
+                spouseMember: (spouseName || realSpouse) ? spouseMember : null,
+                children: groupChildren
+            });
+        });
+
+        // ─────────────────────────────────────────────────────────────────────
+        // PASSE 3: Filhos órfãos — membros de união que não foram absorvidos
+        // por nenhum grupo (ex: filhos cadastrados sem nome nos campos do rep)
+        // ─────────────────────────────────────────────────────────────────────
+        const orphans = [];
+        unionRelatedKeySet.forEach(key => {
+            const member = membersData[key];
+            if (!member) return;
+            const memberId = member.id || key;
+            if (seenIds.has(memberId)) return;
+            seenIds.add(memberId);
+            const name = getBaseName(member.nomeCompleto);
+            if (name) seenNames.add(name);
+            orphans.push({ key, member });
+        });
+
+        if (orphans.length > 0) {
+            orphans.sort((a, b) => getBirthYear(a.member) - getBirthYear(b.member));
+            data.colConjugeFilhos.push({
+                isUnionGroup: true,
+                spouseKey: null,
+                spouseName: null,
+                spouseMember: null,
+                children: orphans
+            });
+        }
+
+        return data;
+    };
+
+    // Renderizador Meticuloso de Cards Categorizados
+    const renderCategorizedMember = (roleKey, member) => {
+        // Detectar se é Bisavô para herdar perfeitamente o visual da camada SVG 4
+        const pNormalized = (member?.parentesco || (roleKey || '').replace(/_\d+$/, '')).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const isBisavo = /(bisavo)/i.test(pNormalized);
+
+        // Usa o forceType para pegar a cor correta (ex: cônjuges e filhos em oliva)
+        const type = isBisavo ? 'bisavo' : (member._forceType || 'outro_membro');
+        const level = isBisavo ? 4 : 1;
+        const isExpanded = expandedRole === roleKey;
+
+        // Objeto mock para o getButtonStyle (precisamos passar algumas props que ele espera)
+        const mockBtn = { role: roleKey, type, level, size: 'mini', parentMarriage: member._parentMarriage };
+        const btnStyles = getButtonStyle(mockBtn);
+
+
+        // Safely extract names and labels
+        const rawName = member?.nomeCompleto || member?._childName || '';
+        const fullName = rawName.trim();
+        const nameParts = fullName.split(/\s+/);
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        // Safe extraction of years
+        const birthYear = member?.dataNascimento ? (member.dataNascimento.match(/\d{4}/)?.[0] || '') : '';
+        const deathYear = member?.dataFalecimento ? (member.dataFalecimento.match(/\d{4}/)?.[0] || '') : '';
+        const marriageDate = member?.dataCasamento ? (member.dataCasamento.match(/\d{4}/)?.[0] || '') : '';
+
+                const parentescoLabel = (roleKey || '').replace(/_\\d+$/, '') === 'Eu mesmo'
+            ? 'Representante'
+            : (member?.parentesco || (roleKey || '').replace(/_\\d+$/, ''));
+
+        const tags = attentionNeeded[roleKey] || {};
+        const isD = tags.isD;
+        const isH = tags.isH;
+        const needsAttention = isD || isH;
+
+        const progressPct = calculateProgress(member);
+        const is3x4 = roleKey === 'Representante' || roleKey === 'Pai' || roleKey === 'Mãe';
+
+        return (
+            <button
+                key={roleKey}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    if (isExpanded) {
+                        onNext?.();
+                    } else {
+                        setExpandedRole(roleKey);
+                        onChange({
+                            papel: roleKey,
+                            nome: fullName || '',
+                            parentesco: parentescoLabel
+                        });
+                    }
+                }}
+                className={`${btnStyles.className} w-full aspect-[0.65] md:aspect-[1.3] cursor-pointer relative pointer-events-auto mb-1 transition-transform hover:scale-[1.02] overflow-hidden break-words`}
+                style={{ padding: '0', ...btnStyles.style }}
+            >
+                {needsAttention && (
+                    <div className="absolute top-1 right-1 z-[20] flex flex-col items-center justify-center pointer-events-none gap-0.5">
+                        {isD && (
+                            <div className="relative">
+                                <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-amber-400 fill-amber-400" />
+                                <span className="absolute inset-0 flex items-center justify-center text-[8px] md:text-[10px] font-black text-white mb-0.5">D</span>
+                            </div>
+                        )}
+                        {isH && (
+                            <div className="relative">
+                                <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-blue-500 fill-blue-500" />
+                                <span className="absolute inset-0 flex items-center justify-center text-[8px] md:text-[10px] font-black text-white mb-0.5">H</span>
+                            </div>
+                        )}
+                    </div>
+                )}
+                <div
+                    style={{
+                        gridTemplateColumns: 'repeat(16, 1fr)',
+                        gridTemplateRows: 'repeat(13, 1fr)',
+                        lineHeight: '1.2'
+                    }}
+                    className="w-full h-full grid px-1 text-[8px] md:text-[11px]"
+                >
+                    <div className="col-start-1 col-span-16 row-start-1 flex items-center justify-center md:justify-start">
+                        <span className="uppercase font-black tracking-tighter text-black/25 truncate text-[5px] md:text-[8px]">
+                            {parentescoLabel}
+                        </span>
+                    </div>
+
+                    <div className="row-start-2 row-span-4 col-start-5 col-span-8 md:row-start-2 md:row-span-11 md:col-start-1 md:col-span-6 flex items-center justify-center md:justify-start py-0.5">
+                        <div className={`h-full ${is3x4 ? 'aspect-[3/4] w-auto' : 'w-full max-w-[90%]'} bg-slate-50/50 rounded-sm md:border md:border-slate-300 overflow-hidden flex items-center justify-center`}>
+                            {(() => {
+                                const photoObj = member?.fotoIdentificacao?.[0];
+                                const photoUrl = (photoObj?.url || photoObj?.preview || member?.photoMain || '').trim();
+                                
+                                if (photoUrl) {
+                                    return <img 
+                                        src={photoUrl} 
+                                        className="w-full h-full object-cover" 
+                                        alt="" 
+                                        loading="lazy"
+                                        onError={(e) => {
+                                            // Fallback default icon
+                                            e.target.style.display = 'none';
+                                            e.target.parentElement.innerHTML = '<div class="flex items-center justify-center w-full h-full"><svg class="text-slate-300 w-3 h-3 md:w-5 md:h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>';
+                                        }}
+                                    />;
+                                }
+                                return <Users className="text-slate-300 w-3 h-3 md:w-5 md:h-5" />;
+                            })()}
+                        </div>
+                    </div>
+
+                    {/* FLEX TEXT WRAPPER */}
+                    <div className="col-start-1 col-span-16 row-start-6 row-span-8 md:col-start-7 md:col-span-10 md:row-start-2 md:row-span-11 flex flex-col items-center md:items-end justify-start md:justify-center gap-0.5 md:gap-[4px] px-0.5 md:pr-1 pt-[1px] md:pt-0 pb-[1px] overflow-hidden">
+                        
+                        {/* firstName */}
+                        <div className="w-full text-center md:text-right font-black text-slate-900 text-[10px] md:text-[14px] leading-none truncate">
+                            {firstName}
+                        </div>
+                        
+                        {/* lastName */}
+                        <div className="w-full text-center md:text-right font-bold text-slate-700 text-[8px] md:text-[11px] leading-[1.0] line-clamp-2 min-h-[2em] text-wrap break-words -mt-[1px] md:mt-0">
+                            {lastName}
+                        </div>
+
+                        {/* dates */}
+                        <div className="w-full flex flex-col items-center md:items-end gap-[1px] md:gap-[2px] mt-[1px] md:mt-1">
+                            {birthYear && (
+                                <div className="flex items-center justify-center md:justify-end gap-1 text-[7px] md:text-[10px] font-bold text-slate-500 whitespace-nowrap">
+                                    {birthYear} <img src="/nascimento.png" className="w-[8px] h-[8px] md:w-[16px] md:h-[16px] opacity-70" alt="*" />
+                                </div>
+                            )}
+                            {deathYear && (
+                                <div className="flex items-center justify-center md:justify-end gap-1 text-[7px] md:text-[10px] font-bold text-slate-500 whitespace-nowrap">
+                                    {deathYear} <img src="/falecimento.png" className="w-[8px] h-[8px] md:w-[16px] md:h-[16px] opacity-70" alt="+" />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* marriage */}
+                        {type === 'conjuge' && (
+                            <div className="w-full flex items-center justify-center md:justify-end gap-1 leading-none mt-0.5">
+                                <span className="text-[6.5px] md:text-[8px] font-black text-rose-700 uppercase tracking-tighter">CASAMENTO</span>
+                                <span className="text-[7px] md:text-[11px] font-bold text-rose-700/90 tracking-tighter">{marriageDate || '----'}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {!isExpanded && (
+                    <div className="absolute bottom-1 left-1 right-1 h-[2.5px] rounded-full bg-black/10 overflow-hidden">
+                        <div className="h-full bg-emerald-600 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
+                    </div>
+                )}
+            </button>
+        );
+    };
+
+    const categories = categorizeMembers();
+
+    return (
+        <div className="w-full flex flex-col font-primary select-none items-center">
+            {/* Banner de Notificações / Caixa de Comunicação */}
+            {systemNotifications.length > 0 && (
+                <div className="w-full max-w-4xl mx-auto px-2 mt-2 z-50 relative pointer-events-auto">
+                    {systemNotifications.map(note => (
+                        <div
+                            key={note.id}
+                            className={`flex items-start justify-between p-3 mb-2 rounded-lg border-l-4 shadow-sm text-xs md:text-sm font-medium ${note.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' : 'bg-blue-50 border-blue-500 text-blue-800'
+                                }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                </svg>
+                                <span>{note.text}</span>
+                                {note.action && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            note.action.handler();
+                                            if (note.action.autoDismiss !== false) {
+                                                setSystemNotifications(prev => prev.filter(n => n.id !== note.id));
+                                            }
+                                        }}
+                                        className="ml-3 px-3 py-1 bg-white/20 hover:bg-white/40 rounded border border-current transition-colors font-black uppercase tracking-widest text-[10px]"
+                                    >
+                                        {note.action.label}
+                                    </button>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => setSystemNotifications(prev => prev.filter(n => n.id !== note.id))}
+                                className="ml-4 opacity-50 hover:opacity-100 transition-opacity"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+            <div
+                className="relative w-full overflow-y-auto"
+                style={{
+                    height: '1000px',
+                    backgroundImage: "url('/fundo%20para%20a%20family%20tree.jpg')",
+                    backgroundRepeat: 'repeat',
+                    backgroundSize: 'auto',
+                }}
+            >
+                <div
+                    className="relative left-0 right-0 w-full h-[1700px] transition-transform duration-500"
+                    ref={containerRef}
+                    onClick={() => setExpandedRole(null)}
+                >
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${GRID_COLS} ${GRID_ROWS}`} preserveAspectRatio="none">
+                        {renderConnections()}
+                        {/* Chamada para as conexões restauradas */}
+                        {renderChildrenConnections()}
+                        {renderCollateralConnections()}
+                    </svg>
+
+                    {familyButtons.map((btn) => {
+                        // Skip rendering SVG grid buttons for members that belong to the new columns
+                        if (!btn.isHalfHeight && !btn.isQuarterHeight && btn.level !== 2 && btn.level !== 3 && btn.level !== 4 && btn.role !== 'Eu mesmo') {
+                            return null;
+                        }
+
+                        const isExpanded = expandedRole === btn.role;
+                        const btnStyles = getButtonStyle(btn);
+
+                        const mData = membersData[btn.role] || {};
+                        const tags = attentionNeeded[btn.role] || {};
+                        const isD = tags.isD;
+                        const isH = tags.isH;
+                        const needsAttention = isD || isH;
+
+                        const repData = membersData['Eu mesmo'] || {};
+                        let firstName = '';
+                        let lastName = '';
+                        let birthYear = '';
+                        let deathYear = '';
+                        let marriageDate = '';
+
+                        let fullName = btn.nome || '';
+
+                        if (btn.type === 'conjuge') {
+                            const role = btn.role;
+                            const spouseData = membersData[role] || {};
+                            let mDate = '';
+
+                            if (!fullName) {
+                                if (role === 'Cônjuge') { fullName = spouseData.nomeCompleto || spouseData.fullName || repData.nomeConjuge || ''; mDate = repData.dataCasamento || ''; }
+                                else if (role === 'Cônjuge 2') { fullName = spouseData.nomeCompleto || spouseData.fullName || repData.spouseName_2 || ''; mDate = repData.marriageDate_2 || ''; }
+                                else if (role === 'Cônjuge 3') { fullName = spouseData.nomeCompleto || spouseData.fullName || repData.spouseName_3 || ''; mDate = repData.marriageDate_3 || ''; }
+                                else if (role === 'Cônjuge 4') { fullName = spouseData.nomeCompleto || spouseData.fullName || repData.spouseName_4 || ''; mDate = repData.marriageDate_4 || ''; }
+                            }
+
+                            const nameParts = fullName.trim().split(/\s+/);
+                            firstName = nameParts[0] || '';
+                            lastName = nameParts.slice(1).join(' ') || '';
+                            const bVal = (spouseData.dataNascimento || '');
+                            birthYear = (bVal === '[NÃO SEI]' || bVal.startsWith('ID_DESCONHECIDO_')) ? 'Ignorada' : (bVal.match(/\d{4}/)?.[0] || '');
+
+                            const dVal = (spouseData.dataFalecimento || spouseData.deathDate || '');
+                            deathYear = (dVal === '[NÃO SEI]' || dVal.startsWith('ID_DESCONHECIDO_')) ? 'Ignorada' : (dVal.match(/\d{4}/)?.[0] || '');
+                            marriageDate = mDate || spouseData.dataCasamento || '';
+                        } else {
+                            if (!fullName) {
+                                const m = membersData[btn.role] || {};
+                                fullName = m.nomeCompleto || m.fullName || btn.childName || '';
+
+                                // Fallbacks para Tronco Principal a partir do Representante
+                                if (!fullName) {
+                                    if (btn.role === 'Pai') fullName = repData.nomePai || repData.fatherName || '';
+                                    if (btn.role === 'Mãe') fullName = repData.nomeMae || repData.motherName || '';
+                                }
+                            }
+
+                            const nameParts = fullName.trim().split(/\s+/);
+                            firstName = nameParts[0] || '';
+                            lastName = nameParts.slice(1).join(' ') || '';
+                            const bVal = (membersData[btn.role]?.dataNascimento || membersData[btn.role]?.birthDate || '');
+                            birthYear = (bVal === '[NÃO SEI]' || bVal.startsWith('ID_DESCONHECIDO_')) ? 'Ignorada' : (bVal.match(/\d{4}/)?.[0] || '');
+
+                            const dVal = (membersData[btn.role]?.dataFalecimento || membersData[btn.role]?.deathDate || '');
+                            deathYear = (dVal === '[NÃO SEI]' || dVal.startsWith('ID_DESCONHECIDO_')) ? 'Ignorada' : (dVal.match(/\d{4}/)?.[0] || '');
+                        }
+
+                        const progressPct = calculateProgress(membersData[btn.role]);
+                        const is3x4 = btn.type === 'representante' || btn.role === 'Pai' || btn.role === 'Mãe';
+
+                        return (
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                key={`grid-${btn.role}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (btn.type === 'outro_parente') {
+                                        setShowOutroModal(true);
+                                        return;
+                                    }
+                                    if (isExpanded) {
+                                        onNext?.();
+                                    } else {
+                                        setExpandedRole(btn.role);
+                                        let nome = membersData[btn.role]?.nomeCompleto || '';
+                                        let parentesco = membersData[btn.role]?.parentesco || '';
+
+                                        if (!nome || !parentesco) {
+                                            if (btn.type === 'filho_individual') {
+                                                nome = btn.childName;
+                                                let pName = '';
+                                                if (btn.parentMarriage === 'Cônjuge') pName = repData.nomeConjuge;
+                                                else if (btn.parentMarriage === 'Cônjuge 2') pName = repData.spouseName_2;
+                                                else if (btn.parentMarriage === 'Cônjuge 3') pName = repData.spouseName_3;
+                                                else if (btn.parentMarriage === 'Cônjuge 4') pName = repData.spouseName_4;
+                                                pName = pName || btn.parentMarriage || '';
+                                                parentesco = pName ? `Filho(a) de ${pName}` : 'Filho(a)';
+                                            } else if (btn.type === 'mae' && btn.role === 'Mãe') {
+                                                nome = repData.nomeMae || ''; parentesco = 'Mãe';
+                                            } else if (btn.type === 'conjuge') {
+                                                if (btn.role === 'Cônjuge') nome = repData.nomeConjuge;
+                                                else if (btn.role === 'Cônjuge 2') nome = repData.spouseName_2;
+                                                else if (btn.role === 'Cônjuge 3') nome = repData.spouseName_3;
+                                                else if (btn.role === 'Cônjuge 4') nome = repData.spouseName_4;
+                                                parentesco = 'Cônjuge';
+                                            }
+                                        }
+
+                                        onChange({ papel: btn.role, nome: nome || membersData[btn.role]?.nomeCompleto || '', parentesco: parentesco || membersData[btn.role]?.parentesco || '' });
+                                    }
+                                }}
+                                className={`${btnStyles.className} overflow-hidden cursor-pointer`}
+                                style={{
+                                    left: `${btn.x}%`, top: `${btn.y}%`, width: `${btn.w}%`, height: `${btn.h}%`, zIndex: isExpanded ? 100 : 10, padding: '0', ...btnStyles.style
+                                }}
+                            >
+                                {needsAttention && (
+                                    <div className="absolute top-1 right-1 z-[20] flex flex-col items-center justify-center pointer-events-none gap-0.5">
+                                        {isD && (
+                                            <div className="relative">
+                                                <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-amber-400 fill-amber-400" />
+                                                <span className="absolute inset-0 flex items-center justify-center text-[8px] md:text-[10px] font-black text-white mb-0.5">D</span>
+                                            </div>
+                                        )}
+                                        {isH && (
+                                            <div className="relative">
+                                                <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-blue-500 fill-blue-500" />
+                                                <span className="absolute inset-0 flex items-center justify-center text-[8px] md:text-[10px] font-black text-white mb-0.5">H</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                <div
+                                    style={{
+                                        gridTemplateColumns: 'repeat(16, 1fr)',
+                                        gridTemplateRows: btn.isQuarterHeight ? 'repeat(4, 1fr)' : (btn.isHalfHeight ? 'repeat(6, 1fr)' : 'repeat(13, 1fr)'),
+                                        lineHeight: '1.2'
+                                    }}
+                                    className="w-full h-full grid px-1 text-[8px] md:text-[11px]"
+                                >
+                                    <div className="col-start-1 col-span-16 row-start-1 flex items-center justify-center md:justify-start">
+                                        <span className="uppercase font-black tracking-tighter text-black/25 truncate text-[5px] md:text-[8px]">
+                                            {btn.label}
+                                        </span>
+                                    </div>
+
+                                    {!btn.isHalfHeight && !btn.isQuarterHeight && btn.type !== 'filhos' && btn.type !== 'outro_parente' && (
+                                        <>
+                                            <div className="row-start-2 row-span-4 col-start-5 col-span-8 md:row-start-2 md:row-span-11 md:col-start-1 md:col-span-6 flex items-center justify-center md:justify-start py-0.5">
+                                                <div className={`h-full ${is3x4 ? 'aspect-[3/4] w-auto' : 'w-full max-w-[90%]'} bg-slate-50/50 rounded-sm border border-slate-300 overflow-hidden flex items-center justify-center`}>
+                                                    {(() => {
+                                                        const mData = membersData[btn.role] || {};
+                                                        const photoObj = mData.fotoIdentificacao?.[0];
+                                                        const photoUrl = (photoObj?.url || photoObj?.preview || mData.photoMain || '').trim();
+                                                        
+                                                        if (photoUrl) {
+                                                            return <img 
+                                                                src={photoUrl} 
+                                                                className="w-full h-full object-cover" 
+                                                                alt=""
+                                                                loading="lazy"
+                                                                onError={(e) => {
+                                                                    e.target.style.display = 'none';
+                                                                    e.target.parentElement.innerHTML = '<div class="flex items-center justify-center w-full h-full"><svg class="text-slate-300 w-3 h-3 md:w-5 md:h-5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>';
+                                                                }}
+                                                            />;
+                                                        }
+                                                        return <Users className="text-slate-300 w-3 h-3 md:w-5 md:h-5" />;
+                                                    })()}
+                                                </div>
+                                            </div>
+                                            {/* FLEX TEXT WRAPPER */}
+                                            <div className="col-start-1 col-span-16 row-start-6 row-span-8 md:col-start-7 md:col-span-10 md:row-start-2 md:row-span-11 flex flex-col items-center md:items-end justify-start md:justify-center gap-0.5 md:gap-[4px] px-0.5 md:pr-1 pt-[1px] md:pt-0 pb-[1px] overflow-hidden">
+                                                
+                                                {/* firstName */}
+                                                <div className="w-full text-center md:text-right font-black text-slate-900 text-[10px] md:text-[14px] leading-none truncate">
+                                                    {firstName}
+                                                </div>
+                                                
+                                                {/* lastName */}
+                                                <div className="w-full text-center md:text-right font-bold text-slate-700 text-[8px] md:text-[11px] leading-[1.0] line-clamp-2 min-h-[2em] text-wrap break-words -mt-[1px] md:mt-0">
+                                                    {lastName}
+                                                </div>
+
+                                                {/* dates */}
+                                                <div className="w-full flex flex-col items-center md:items-end gap-[1px] md:gap-[2px] mt-[1px] md:mt-1">
+                                                    {birthYear && (
+                                                        <div className="flex items-center justify-center md:justify-end gap-1 text-[7px] md:text-[10px] font-bold text-slate-500 whitespace-nowrap">
+                                                            {birthYear} <img src="/nascimento.png" className="w-[8px] h-[8px] md:w-[16px] md:h-[16px] opacity-70" alt="*" />
+                                                        </div>
+                                                    )}
+                                                    {deathYear && btn.type !== 'representante' && (
+                                                        <div className="flex items-center justify-center md:justify-end gap-1 text-[7px] md:text-[10px] font-bold text-slate-500 whitespace-nowrap">
+                                                            {deathYear} <img src="/falecimento.png" className="w-[8px] h-[8px] md:w-[16px] md:h-[16px] opacity-70" alt="+" />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* marriage */}
+                                                {btn.type === 'conjuge' && (
+                                                    <div className="w-full flex items-center justify-center md:justify-end gap-1 leading-none mt-0.5">
+                                                        <span className="text-[5px] md:text-[8px] font-black text-rose-600/60 uppercase tracking-tighter">Casamento</span>
+                                                        <span className="text-[7px] md:text-[11px] font-bold text-rose-700/90 tracking-tighter">{marriageDate || '----'}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {btn.type === 'outro_parente' && (
+                                        <div className="col-start-1 col-span-16 row-start-2 row-span-9 flex flex-col items-center justify-center gap-1">
+                                            <div className="w-7 h-7 md:w-10 md:h-10 rounded-full bg-emerald-50 border border-emerald-300 flex items-center justify-center">
+                                                <span className="text-emerald-500 text-[16px] md:text-[22px] font-black leading-none">+</span>
+                                            </div>
+                                            <span className="text-[6px] md:text-[10px] font-black text-emerald-600 uppercase tracking-tight text-center leading-[1.1]">
+                                                Adicionar<br />Parente
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {!isExpanded && !btn.isHalfHeight && membersData[btn.role] && btn.type !== 'outro_parente' && (
+                                    <div className="absolute bottom-1 left-1 right-1 h-[2.5px] rounded-full bg-black/10 overflow-hidden">
+                                        <div className="h-full bg-emerald-600 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+
+                    {/* ========================================== */}
+                    {/* NOVO PAINEL DE COLUNAS (Abaixo de Eu mesmo) */}
+                    {/* ========================================== */}
+                    <div className="absolute left-0 right-0 w-full pointer-events-auto flex justify-center pb-20 px-0.5 md:px-2 lg:px-4" style={{ top: '48%' }}>
+                        <div className="grid grid-cols-4 gap-2 md:gap-x-10 lg:gap-x-16 w-full max-w-full md:max-w-[98%] lg:max-w-[1400px] mx-auto">
+                            
+                            {[
+                                { title: "Irmãos",          subtitle: "Ancestrais distantes", list: categories.colAncestorIrmaos },
+                                { title: "Família Paterna", subtitle: null,                   list: categories.colFamiliaPaterna },
+                                { title: "Família Materna", subtitle: null,                   list: categories.colFamiliaMaterna },
+                                { title: "Uniões & Filhos", subtitle: null,                   list: categories.colConjugeFilhos  }
+                            ].map((group, idx) => (
+                                <div key={idx} className="flex flex-col items-center w-full min-w-0">
+                                    <div className="w-full flex justify-center items-center gap-1 md:gap-3 mb-1 md:mb-4 border-b border-slate-200 pb-2 group">
+                                        <span className="text-[8px] md:text-[12px] font-black uppercase tracking-[0.05em] md:tracking-[0.2em] text-center leading-tight text-history-green/70 bg-white px-1.5 py-0.5 rounded">
+                                            {group.title}
+                                            {group.subtitle && (
+                                                <small className="block text-[7px] md:text-[9px] font-medium normal-case tracking-[0.03em] opacity-60 leading-none mt-0.5">
+                                                    {group.subtitle}
+                                                </small>
+                                            )}
+                                        </span>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                // Normaliza título para comparação segura (ignora acentos/encoding)
+                                                const normalizeT = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+                                                const gt = normalizeT(group.title);
+                                                console.log('[FamilyTree] Clicou no + da coluna:', group.title, '| normalizado:', gt);
+
+                                                if (gt === 'familia paterna') {
+                                                    setSelectedCategory({
+                                                        label: 'Família Paterna',
+                                                        options: [
+                                                            'Tio/a (Paterno)', 'Primo/a (Paterno)',
+                                                            'Primo (2º grau, Paterno)', 'Primo (3º grau, Paterno)',
+                                                            'Sobrinho/a (Paterno)', 'Sobrinho-neto(a) (Paterno)'
+                                                        ]
+                                                    });
+                                                    setOutroModalStep(2);
+                                                } else if (gt === 'familia materna') {
+                                                    setSelectedCategory({
+                                                        label: 'Família Materna',
+                                                        options: [
+                                                            'Tio/a (Materno)', 'Primo/a (Materno)',
+                                                            'Primo (2º grau, Materno)', 'Primo (3º grau, Materno)',
+                                                            'Sobrinho/a (Materno)', 'Sobrinho-neto(a) (Materno)'
+                                                        ]
+                                                    });
+                                                    setOutroModalStep(2);
+                                                } else {
+                                                    setOutroModalStep(1);
+                                                    setSelectedCategory(null);
+                                                }
+                                                setShowOutroModal(true);
+                                            }}
+                                            className="p-1 md:p-1.5 rounded-full hover:bg-slate-100 text-slate-400 md:text-slate-500 md:border md:border-slate-200 transition-all active:scale-90"
+                                            title={`Adicionar em ${group.title}`}
+                                        >
+                                            <Plus size={14} />
+                                        </button>
+                                    </div>
+                                    <div className="w-full flex flex-col gap-2 py-4 min-h-[110px] items-center">
+                                        {group.list.length > 0 ? (
+                                            group.list.map((item, itemIdx) =>
+                                                item.isClanGroup ? (() => {
+                                                    // ── Bloco de Clã (Família Paterna / Materna) ────────────
+                                                    const cc = item.clanColor;
+                                                    const colorMap = {
+                                                        indigo: { pill: 'text-indigo-600/80 bg-indigo-50 border-indigo-200/60', line: 'via-indigo-200' },
+                                                        teal:   { pill: 'text-teal-600/80   bg-teal-50   border-teal-200/60',   line: 'via-teal-200'   },
+                                                        gray:   { pill: 'text-slate-500/80  bg-slate-50  border-slate-200/60',  line: 'via-slate-200'  },
+                                                    };
+                                                    const c = colorMap[cc] || colorMap.gray;
+                                                    return (
+                                                        <div key={item.clanLabel + itemIdx} className="w-full flex flex-col gap-2">
+                                                            {/* Header do Clã */}
+                                                            <div className="w-full flex items-center gap-1.5 px-1 pt-2">
+                                                                <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${c.line} to-transparent`} />
+                                                                <span className={`text-[7px] md:text-[9px] font-black uppercase tracking-[0.12em] whitespace-nowrap px-1.5 py-0.5 border rounded-full leading-none ${c.pill}`}>
+                                                                    {item.clanLabel}
+                                                                </span>
+                                                                <div className={`flex-1 h-px bg-gradient-to-r from-transparent ${c.line} to-transparent`} />
+                                                            </div>
+                                                            {/* Membros do clã */}
+                                                            {item.members.length > 0
+                                                                ? item.members.map(m => (
+                                                                    <div key={m.key} className="w-full flex flex-col">
+                                                                        {renderCategorizedMember(m.key, m.member)}
+                                                                        {/* FIX 5: botões de migração rápida apenas no grupo "Sem classificação" */}
+                                                                        {item.clanColor === 'gray' && (
+                                                                            <div className="flex gap-1 justify-center -mt-0.5 mb-1.5">
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        const baseP = m.member?.relationshipInfo?.parentesco || m.member?.parentesco || 'Tio/a';
+                                                                                        onChange({ papel: m.key, parentesco: `${baseP} (Paterno)`, nome: m.member?.nomeCompleto || '' });
+                                                                                        onNext(m.key);
+                                                                                    }}
+                                                                                    title="Mover para Família Paterna"
+                                                                                    className="text-[6px] md:text-[7px] font-black uppercase tracking-wide px-2 py-0.5 bg-indigo-50 border border-indigo-200 text-indigo-600 rounded-full hover:bg-indigo-100 active:scale-95 transition-all"
+                                                                                >
+                                                                                    → Paterno
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        const baseP = m.member?.relationshipInfo?.parentesco || m.member?.parentesco || 'Tio/a';
+                                                                                        onChange({ papel: m.key, parentesco: `${baseP} (Materno)`, nome: m.member?.nomeCompleto || '' });
+                                                                                        onNext(m.key);
+                                                                                    }}
+                                                                                    title="Mover para Família Materna"
+                                                                                    className="text-[6px] md:text-[7px] font-black uppercase tracking-wide px-2 py-0.5 bg-teal-50 border border-teal-200 text-teal-600 rounded-full hover:bg-teal-100 active:scale-95 transition-all"
+                                                                                >
+                                                                                    → Materno
+                                                                                </button>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                ))
+                                                                : <div className="text-[8px] text-slate-300 italic text-center py-2">vazio</div>
+                                                            }
+                                                        </div>
+                                                    );
+                                                })() :
+                                                item.isUnionGroup ? (
+                                                    // ── Bloco de União com Header ──────────────────────────
+                                                    <div key={item.spouseKey || `orphaned-${itemIdx}`} className="w-full flex flex-col gap-2">
+                                                        {/* Header da União */}
+                                                        <div className="w-full flex items-center gap-1.5 px-1 pt-1">
+                                                            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-rose-200 to-transparent" />
+                                                            <span className="text-[7px] md:text-[9px] font-black uppercase tracking-[0.15em] text-rose-500/80 whitespace-nowrap px-1.5 py-0.5 bg-rose-50 border border-rose-200/60 rounded-full leading-none">
+                                                                {item.spouseName
+                                                                    ? `União c/ ${item.spouseName.split(' ')[0]}`
+                                                                    : 'Outros Filhos'}
+                                                            </span>
+                                                            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-rose-200 to-transparent" />
+                                                        </div>
+                                                        {/* Card do Cônjuge (se houver) */}
+                                                        {item.spouseMember && renderCategorizedMember(item.spouseKey, item.spouseMember)}
+                                                        {/* Filhos ordenados por nascimento */}
+                                                        {item.children.length > 0
+                                                            ? item.children.map(child => renderCategorizedMember(child.key, child.member))
+                                                            : !item.spouseMember && (
+                                                                <div className="text-[8px] text-slate-300 italic text-center py-2">sem filhos cadastrados</div>
+                                                            )
+                                                        }
+                                                    </div>
+                                                ) : renderCategorizedMember(item.key, item.member)
+                                            )
+                                        ) : (
+                                            <div className="h-16 flex items-center justify-center w-full text-[9px] text-slate-300 font-bold uppercase tracking-widest italic opacity-40">Vazio</div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {showOutroModal && (
+                <div 
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setShowOutroModal(false);
+                        setOutroModalStep(1);
+                        setSelectedCategory(null);
+                    }}
+                >
+                    <div 
+                        className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <div>
+                                <h3 className="text-lg font-serif font-black text-history-green uppercase tracking-wider">
+                                    Adicionar Parente
+                                </h3>
+                                {outroModalStep === 2 && (
+                                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                                        Categoria: {selectedCategory?.label}
+                                    </span>
+                                )}
+                            </div>
+                            <button 
+                                onClick={() => { setShowOutroModal(false); setOutroModalStep(1); }}
+                                className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+                            >
+                                <X size={20} className="text-slate-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 max-h-[60vh] overflow-y-auto">
+                            {outroModalStep === 1 ? (
+                                <div className="grid grid-cols-1 gap-3">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Selecione uma categoria:</p>
+                                    {[
+                                        { label: "Ancestrais",      options: ['Bisavô/ó', 'Trisavô/ó', 'Tataravô/ó', 'Quarto-avô/ó', 'Quinto-avô/ó', 'Sextavô/ó', 'Tio-avô/ó', 'Tio-bisavô/ó', 'Padrasto / Madrasta'] },
+                                        { label: "Irmãos",          options: ['Irmão', 'Irmã', 'Irmão (Pai)', 'Irmã (Pai)', 'Irmão (Mãe)', 'Irmã (Mãe)'] },
+                                        { label: "Família Paterna", options: ['Tio/a (Paterno)', 'Primo/a (Paterno)', 'Primo (2º grau, Paterno)', 'Primo (3º grau, Paterno)', 'Sobrinho/a (Paterno)', 'Sobrinho-neto(a) (Paterno)'] },
+                                        { label: "Família Materna", options: ['Tio/a (Materno)', 'Primo/a (Materno)', 'Primo (2º grau, Materno)', 'Primo (3º grau, Materno)', 'Sobrinho/a (Materno)', 'Sobrinho-neto(a) (Materno)'] },
+                                        { label: "Uniões & Filhos", options: ['Filho/a', 'Neto/a', 'Bisneto/a', 'Trineto/a', 'Cônjuge', 'Genro / Nora', 'Enteado(a)'] }
+                                    ].map((cat) => (
+                                        <button
+                                            key={cat.label}
+                                            onClick={() => {
+                                                setSelectedCategory(cat);
+                                                setOutroModalStep(2);
+                                            }}
+                                            className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-slate-100 hover:border-slate-300 hover:bg-slate-50 transition-all group"
+                                        >
+                                            <span className="font-bold text-slate-700 uppercase tracking-wide text-sm">{cat.label}</span>
+                                            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition-colors">
+                                                <Plus size={16} className="text-slate-400 group-hover:text-slate-600" />
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button 
+                                        onClick={() => setOutroModalStep(1)}
+                                        className="col-span-2 text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-1"
+                                    >
+                                        ← Voltar para categorias
+                                    </button>
+                                    {selectedCategory?.options.map((opt) => (
+                                        <button
+                                            key={opt}
+                                            onClick={() => {
+                                                const newIndex = getNextOutroIndex();
+                                                const newRole = `Outro ${newIndex}`;
+                                                // CORREÇÃO: envia o shape correto { papel, parentesco, nome }
+                                                // O erro anterior espalhava `value` (que continha o papel do último
+                                                // membro selecionado, ex: "Mãe"), fazendo o handleFamilyTreeChange
+                                                // encontrar dados existentes e entrar no Caminho A (edição) em vez
+                                                // de Caminho B (criação com INITIAL_STATE limpo).
+                                                console.log('[FamilyTree] Criando novo parente:', { papel: newRole, parentesco: opt });
+                                                onChange({
+                                                    papel: newRole,
+                                                    parentesco: opt,
+                                                    nome: ''
+                                                });
+                                                onNext(newRole);
+                                                setShowOutroModal(false);
+                                                setOutroModalStep(1);
+                                            }}
+                                            className="p-3 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-400 hover:bg-slate-100 hover:text-slate-800 transition-all text-center uppercase tracking-tight"
+                                        >
+                                            {opt}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* ====== DRAWERS ====== */}
+            {showDuplicateDrawer && (
+                <div 
+                    className="fixed inset-y-0 right-0 w-full max-w-sm bg-slate-50 shadow-2xl z-[300] flex flex-col transform transition-transform border-l border-slate-200"
+                    onClick={e => e.stopPropagation()}
+                >
+                    <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-white shadow-sm">
+                        <h3 className="font-serif font-black text-amber-600 uppercase tracking-widest text-sm flex items-center gap-2">
+                            <AlertTriangle size={18} /> Cadastros Similares
+                        </h3>
+                        <button onClick={() => setShowDuplicateDrawer(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20} className="text-slate-500" /></button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+                        {duplicateMembersList.length === 0 ? (
+                            <p className="text-sm text-slate-400 font-medium italic text-center mt-8">Tudo organizado! Nenhuma duplicata pendente.</p>
+                        ) : (
+                            duplicateMembersList.map((m, i) => (
+                                <div key={i} className="p-4 border border-slate-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow flex flex-col gap-3">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex flex-col">
+                                            <span className="font-bold text-slate-800 text-[15px]">{m.member?.nomeCompleto || m.member?.parentesco || m.key}</span>
+                                            <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black">{m.key}</span>
+                                            <div className="flex gap-1 mt-1.5">
+                                                {m.isD && <span className="text-[9px] text-amber-700 font-bold bg-amber-100 px-2 py-0.5 rounded uppercase tracking-wider">Duplicata</span>}
+                                                {m.isH && <span className="text-[9px] text-blue-700 font-bold bg-blue-100 px-2 py-0.5 rounded uppercase tracking-wider">Homônimo</span>}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 mt-1">
+                                        <button onClick={() => {
+                                            if (m.baseName) setAcceptedDuplicates(prev => new Set(prev).add(m.baseName));
+                                            onAcceptDuplicate?.(m.key, m.member);
+                                        }} className="flex-1 py-1.5 text-[10px] font-black tracking-wider text-emerald-700 bg-emerald-50 rounded border border-emerald-100/50 hover:bg-emerald-100 transition-colors uppercase">
+                                            Aceitar
+                                        </button>
+                                        <button onClick={() => {
+                                            setShowDuplicateDrawer(false);
+                                            onChange({ papel: m.key, nome: m.member?.nomeCompleto || '', parentesco: m.member?.parentesco || m.key });
+                                            onNext?.(m.key);
+                                        }} className="flex-1 py-1.5 text-[10px] font-black tracking-wider text-blue-700 bg-blue-50 rounded border border-blue-100/50 hover:bg-blue-100 transition-colors uppercase">
+                                            Editar
+                                        </button>
+                                        <button onClick={() => {
+                                            onArchiveMember?.(m.key, m.member);
+                                            setAcceptedDuplicates(prev => new Set(prev).add(m.key)); // Clear from list
+                                        }} className="flex-1 py-1.5 text-[10px] font-black tracking-wider text-slate-600 bg-slate-100 rounded border border-slate-200/50 hover:bg-slate-200 transition-colors uppercase">
+                                            Arquivar
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
+            
+            {showIncompleteDrawer && (
+                <div 
+                    className="fixed inset-y-0 right-0 w-full max-w-sm bg-slate-50 shadow-2xl z-[300] flex flex-col transform transition-transform border-l border-slate-200"
+                    onClick={e => e.stopPropagation()}
+                >
+                    <div className="p-4 border-b border-slate-200 flex justify-between items-center bg-white shadow-sm">
+                        <h3 className="font-serif font-black text-rose-600 uppercase tracking-widest text-sm flex items-center gap-2">
+                            <AlertTriangle size={18} /> Informações Pendentes
+                        </h3>
+                        <button onClick={() => setShowIncompleteDrawer(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20} className="text-slate-500" /></button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+                        {incompleteMembersList.length === 0 ? (
+                            <p className="text-sm text-slate-400 font-medium italic text-center mt-8">Tudo completo! Nenhuma pendência.</p>
+                        ) : (
+                            incompleteMembersList.map((m, i) => (
+                                <button 
+                                    key={i} 
+                                    onClick={() => {
+                                        setShowIncompleteDrawer(false);
+                                        onChange({ papel: m.key, nome: m.member?.nomeCompleto || '', parentesco: m.member?.parentesco || m.key });
+                                        onNext?.(m.key);
+                                    }}
+                                    className="p-4 border border-slate-200 rounded-xl bg-white shadow-sm flex flex-col gap-1 text-left hover:border-history-green hover:shadow-md transition-all group active:scale-95"
+                                >
+                                    <span className="font-bold text-slate-800 text-[15px] group-hover:text-history-green transition-colors">{m.member?.nomeCompleto || m.member?.parentesco || m.key}</span>
+                                    <span className="text-[10px] text-slate-400 uppercase tracking-widest font-black mt-1 flex items-center gap-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                        {m.key} - Completar cadastro
+                                    </span>
+                                </button>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};

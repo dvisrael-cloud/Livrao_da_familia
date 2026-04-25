@@ -1,0 +1,873 @@
+[
+  {
+    "id": "04775206-4d06-484f-8e2a-508b49a5fad5",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Luna Cagy Cohen",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Avó Materna",
+    "relationshipInfo": {
+      "papel": "Avó Materna"
+    }
+  },
+  {
+    "id": "2321252b-0afb-4cb6-8f81-dddf16b4b53f",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Piedade Abecassis Cohen",
+    "parentesco": "Tio/a (Materno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "ZhdWhJFddgXwfOmEKZ8w",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Tio/a (Materno)"
+    }
+  },
+  {
+    "id": "4948d8b3-34dc-486c-83c9-0c3186d97df4",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Salomão Moysés Cohen",
+    "parentesco": "Tio/a (Materno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Mãe",
+    "_memoryKey": "4948d8b3-34dc-486c-83c9-0c3186d97df4",
+    "_originalRole": "4948d8b3-34dc-486c-83c9-0c3186d97df4",
+    "relationshipInfo": {
+      "papel": "4948d8b3-34dc-486c-83c9-0c3186d97df4"
+    }
+  },
+  {
+    "id": "6In4pZxxcJwpk4D0aENF",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Daniel Petruccelli Israel",
+    "parentesco": "Filho/a",
+    "vinculoAcao": "Filho de",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": "6In4pZxxcJwpk4D0aENF",
+    "_originalRole": "6In4pZxxcJwpk4D0aENF",
+    "relationshipInfo": {
+      "papel": "Filho/a"
+    }
+  },
+  {
+    "id": "6c1bddd8-d7bc-4fb1-8d70-9e3653605e21",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Michel Vidal Israel",
+    "parentesco": "Irmão",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Irmão"
+    }
+  },
+  {
+    "id": "7JmPj8eYhJyD7b2H120g",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Isaac Moysés Cohen",
+    "parentesco": "Tio/a (Materno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Mãe",
+    "_memoryKey": null,
+    "_originalRole": "Outro 11",
+    "relationshipInfo": {
+      "papel": "Tio/a (Materno)"
+    }
+  },
+  {
+    "id": "9ZvPEoNLx2oSYk0LRDSO",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Abraham Cohem",
+    "parentesco": "Tio/a (Materno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Mãe",
+    "_memoryKey": "9ZvPEoNLx2oSYk0LRDSO",
+    "_originalRole": "9ZvPEoNLx2oSYk0LRDSO",
+    "relationshipInfo": {
+      "papel": "9ZvPEoNLx2oSYk0LRDSO"
+    }
+  },
+  {
+    "id": "9kAbXlYgdT5j2naIL49h",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Bruxa do oeste",
+    "parentesco": "Madrasta",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": "Outro 7",
+    "relationshipInfo": {
+      "papel": "Madrasta"
+    }
+  },
+  {
+    "id": "Avô Materno",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Moysés Salomão Cohen",
+    "parentesco": "Avô Materno",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "9ZvPEoNLx2oSYk0LRDSO",
+    "_memoryKey": "Avô Materno",
+    "_originalRole": "Avô Materno",
+    "relationshipInfo": {
+      "papel": "Avô Materno"
+    }
+  },
+  {
+    "id": "Avô Paterno",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "David José israel",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Avô Paterno",
+    "relationshipInfo": {
+      "papel": "Avô Paterno"
+    }
+  },
+  {
+    "id": "Cônjuge",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Karla Petruccelli Israel",
+    "parentesco": "Cônjuge",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": "Cônjuge",
+    "_originalRole": "Cônjuge",
+    "relationshipInfo": {
+      "papel": "Cônjuge"
+    }
+  },
+  {
+    "id": "Cônjuge 2",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Maria Antonieta",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": "Cônjuge 2",
+    "relationshipInfo": {
+      "papel": "Cônjuge 2"
+    }
+  },
+  {
+    "id": "Eu mesmo",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "David Vidal Israel ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": "Eu mesmo",
+    "_originalRole": "Eu mesmo",
+    "relationshipInfo": {
+      "papel": "Eu mesmo"
+    }
+  },
+  {
+    "id": "Filhoa_1_1775710766915_k1guz",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Moisés Isaac Cohen",
+    "parentesco": "Filho/a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "7JmPj8eYhJyD7b2H120g",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Filho/a 1"
+    }
+  },
+  {
+    "id": "Filhoa_2_1775762507849_fd94e",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "David Cohen",
+    "parentesco": "Filho/a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "9ZvPEoNLx2oSYk0LRDSO",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Filho/a 2"
+    }
+  },
+  {
+    "id": "Filhoa_3_1775762507849_3lmxo",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Juliana Cohen",
+    "parentesco": "Filho/a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "9ZvPEoNLx2oSYk0LRDSO",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Filho/a 3"
+    }
+  },
+  {
+    "id": "GgODkysLeTxInnIznfZK",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Marcos Cohen",
+    "parentesco": "Primo/a (Materno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "ZhdWhJFddgXwfOmEKZ8w",
+    "_memoryKey": "GgODkysLeTxInnIznfZK",
+    "_originalRole": "GgODkysLeTxInnIznfZK",
+    "relationshipInfo": {
+      "papel": "GgODkysLeTxInnIznfZK"
+    }
+  },
+  {
+    "id": "GupokOQNbFt54iJa5IXd",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "mario",
+    "parentesco": "Filho/a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Filho/a 1_C2"
+    }
+  },
+  {
+    "id": "Hsy3InUI3E39eBF2tZ5e",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Abigail Abravanel",
+    "parentesco": "Cônjuge 4",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": "Cônjuge 4",
+    "_originalRole": "Cônjuge 4",
+    "relationshipInfo": {
+      "papel": "Hsy3InUI3E39eBF2tZ5e"
+    }
+  },
+  {
+    "id": "Irmao_Irma",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Moysés Vidal Israel",
+    "parentesco": "Irmão",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": "Irmao_Irma",
+    "_originalRole": "Irmao_Irma",
+    "relationshipInfo": {
+      "papel": "Irmao_Irma"
+    }
+  },
+  {
+    "id": "Mãe",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Julia Cohen Israel ",
+    "parentesco": "Mãe",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": "Mãe",
+    "_originalRole": "Mãe",
+    "relationshipInfo": {
+      "papel": "Mãe"
+    }
+  },
+  {
+    "id": "Mãe da Avó Paterna",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Alegria Israel",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": "Mãe da Avó Paterna",
+    "_originalRole": "Mãe da Avó Paterna",
+    "relationshipInfo": {
+      "papel": "Mãe da Avó Paterna"
+    }
+  },
+  {
+    "id": "Mãe do Avô Materno",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Augusto Montenegro ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Mãe do Avô Materno"
+    }
+  },
+  {
+    "id": "Mãe do Avô Paterno",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "David José Israel",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Mãe do Avô Paterno",
+    "relationshipInfo": {
+      "papel": "Mãe do Avô Paterno"
+    }
+  },
+  {
+    "id": "Nesxp41HaE3e3cLWp4pN",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Salomão Cohen",
+    "parentesco": "Filho/a 2",
+    "vinculoAcao": "Pai de",
+    "vinculoFamiliarId": "byDaw0fJcvO3Q4EeBsYZ",
+    "_memoryKey": "Nesxp41HaE3e3cLWp4pN",
+    "_originalRole": "Cônjuge 4",
+    "relationshipInfo": {
+      "papel": "Filho/a 2"
+    }
+  },
+  {
+    "id": "Pai",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Vidal David Israel de sousa lima",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": "Pai",
+    "_originalRole": "Pai",
+    "relationshipInfo": {
+      "papel": "Pai"
+    }
+  },
+  {
+    "id": "Pai da Avó Materna",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Isaack lassery",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": "Pai da Avó Materna",
+    "_originalRole": "Pai da Avó Materna",
+    "relationshipInfo": {
+      "papel": "Pai da Avó Materna"
+    }
+  },
+  {
+    "id": "Pai do Avô Materno",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "juju",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "6In4pZxxcJwpk4D0aENF",
+    "_memoryKey": "Pai do Avô Materno",
+    "_originalRole": "Pai do Avô Materno",
+    "relationshipInfo": {
+      "papel": "Pai do Avô Materno"
+    }
+  },
+  {
+    "id": "Pai do Avô Paterno",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Jose David Israel",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Pai do Avô Paterno",
+    "relationshipInfo": {
+      "papel": "Pai do Avô Paterno"
+    }
+  },
+  {
+    "id": "S4kvhZEkjeWbggTf5uko",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Jime Elias Israel",
+    "parentesco": "Primo/a (Paterno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "sODwm9X5rlICL7j6CkrT",
+    "_memoryKey": "S4kvhZEkjeWbggTf5uko",
+    "_originalRole": "S4kvhZEkjeWbggTf5uko",
+    "relationshipInfo": {
+      "papel": "S4kvhZEkjeWbggTf5uko"
+    }
+  },
+  {
+    "id": "UmGaPnQPLlxyaVz0ijH2",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "D. Pedro I",
+    "parentesco": "Filho/a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Filho/a 1_C3"
+    }
+  },
+  {
+    "id": "WEhBvGGZRhuJuOPA1O7H",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Maria Leopoldina",
+    "parentesco": "Cônjuge 3",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Cônjuge 3"
+    }
+  },
+  {
+    "id": "ZhdWhJFddgXwfOmEKZ8w",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Jacob Cohen",
+    "parentesco": "Tio/a (Materno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Mãe",
+    "_memoryKey": "ZhdWhJFddgXwfOmEKZ8w",
+    "_originalRole": "ZhdWhJFddgXwfOmEKZ8w",
+    "relationshipInfo": {
+      "papel": "ZhdWhJFddgXwfOmEKZ8w"
+    }
+  },
+  {
+    "id": "__filho_0",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Daniel Petruccelli Israel de oliverira silva",
+    "parentesco": "Filho/a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Cônjuge",
+    "_memoryKey": "__filho_0",
+    "_originalRole": "__filho_0",
+    "relationshipInfo": {
+      "papel": "__filho_0"
+    }
+  },
+  {
+    "id": "byDaw0fJcvO3Q4EeBsYZ",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Anita Petruccelli Israel",
+    "parentesco": "Filho/a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Filho/a 2"
+    }
+  },
+  {
+    "id": "e0dKlqdDrsXWOA14U27H",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "HannaH Leão Israel",
+    "parentesco": "Sobrinho/a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Irmao_Irma",
+    "_memoryKey": "e0dKlqdDrsXWOA14U27H",
+    "_originalRole": "e0dKlqdDrsXWOA14U27H",
+    "relationshipInfo": {
+      "papel": "e0dKlqdDrsXWOA14U27H"
+    }
+  },
+  {
+    "id": "fde35edf-4ade-4ea9-8caa-7711021e2f9a",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Alegria David Israel",
+    "parentesco": "fde35edf-4ade-4ea9-8caa-7711021e2f9a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": "fde35edf-4ade-4ea9-8caa-7711021e2f9a",
+    "_originalRole": "fde35edf-4ade-4ea9-8caa-7711021e2f9a",
+    "relationshipInfo": {
+      "papel": "fde35edf-4ade-4ea9-8caa-7711021e2f9a"
+    }
+  },
+  {
+    "id": "iF3dKR5vTogIkg1bbjl9",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Meyr David Israel",
+    "parentesco": "Tio/a (Paterno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Mãe do Avô Paterno",
+    "_memoryKey": null,
+    "_originalRole": "Outro 8",
+    "relationshipInfo": {
+      "papel": "Tio/a (Paterno)"
+    }
+  },
+  {
+    "id": "nfMk7pz7mjAwYnqDOOMY",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Ester Cohen",
+    "parentesco": "Tio/a (Materno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Mãe",
+    "_memoryKey": "nfMk7pz7mjAwYnqDOOMY",
+    "_originalRole": "nfMk7pz7mjAwYnqDOOMY",
+    "relationshipInfo": {
+      "papel": "c290928f-0da5-4a77-ac4a-c119e7884ccb"
+    }
+  },
+  {
+    "id": "och4qN307hB68dOiNvml",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Silvio Santos",
+    "parentesco": "Filho/a",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": "och4qN307hB68dOiNvml",
+    "_originalRole": "och4qN307hB68dOiNvml",
+    "relationshipInfo": {
+      "papel": "och4qN307hB68dOiNvml"
+    }
+  },
+  {
+    "id": "pm4HJUE6QQzZPE0JTydC",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Moysés Isaac Cohen",
+    "parentesco": "Primo/a (Materno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "7JmPj8eYhJyD7b2H120g",
+    "_memoryKey": "pm4HJUE6QQzZPE0JTydC",
+    "_originalRole": "pm4HJUE6QQzZPE0JTydC",
+    "relationshipInfo": {
+      "papel": "pm4HJUE6QQzZPE0JTydC"
+    }
+  },
+  {
+    "id": "sODwm9X5rlICL7j6CkrT",
+    "repId": "1DyECP2wp9PJ3FjttzjlcQTIDc92",
+    "nomeCompleto": "Elias José Israel",
+    "parentesco": "Tio/a (Paterno)",
+    "vinculoAcao": "Filho de",
+    "vinculoFamiliarId": "Avô Paterno",
+    "_memoryKey": "sODwm9X5rlICL7j6CkrT",
+    "_originalRole": "sODwm9X5rlICL7j6CkrT",
+    "relationshipInfo": {
+      "papel": "sODwm9X5rlICL7j6CkrT"
+    }
+  },
+  {
+    "id": "8HBcRkZCZsBi8bLgDZ4p",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Moisés Barcessat",
+    "parentesco": "Irmão",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": "Outro 6",
+    "relationshipInfo": {
+      "papel": "Irmão"
+    }
+  },
+  {
+    "id": "8ZQXrcBygW3ewSetODdY",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Daniel Benarroch Barcessat ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Irmão"
+    }
+  },
+  {
+    "id": "Avó Materna",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Sarah Benarroch Benfenati ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Avó Materna",
+    "relationshipInfo": {
+      "papel": "Avó Materna"
+    }
+  },
+  {
+    "id": "Avó Paterna",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Anna Athias Barcessat ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Avó Paterna",
+    "relationshipInfo": {
+      "papel": "Avó Paterna"
+    }
+  },
+  {
+    "id": "Avô Materno",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Elias Oliveira",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Avô Materno",
+    "relationshipInfo": {
+      "papel": "Avô Materno"
+    }
+  },
+  {
+    "id": "Avô Paterno",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Moysés Barcessat ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Avô Paterno",
+    "relationshipInfo": {
+      "papel": "Avô Paterno"
+    }
+  },
+  {
+    "id": "BHtwqOxWXojgsoOuLE48",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Myrian Barcessat Serruya ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Irmã"
+    }
+  },
+  {
+    "id": "Cônjuge",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Jack Rubinstein L.",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": "Cônjuge",
+    "relationshipInfo": {
+      "papel": "Cônjuge"
+    }
+  },
+  {
+    "id": "Eu mesmo",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Márcia Benarroch Barcessat Rubinstein ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": "Eu mesmo",
+    "_originalRole": "Eu mesmo",
+    "relationshipInfo": {
+      "papel": "Eu mesmo"
+    }
+  },
+  {
+    "id": "JHJUA8xqhU3dJ1dZOPd2",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Ália Elalluf Benarroch ",
+    "parentesco": "Tio-avô/ó (Materno)",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Mãe",
+    "_memoryKey": null,
+    "_originalRole": "Outro 2",
+    "relationshipInfo": {
+      "papel": "Tio-avô/ó (Materno)"
+    }
+  },
+  {
+    "id": "Mãe",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Clara Benarroch Barcessat",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Mãe"
+    }
+  },
+  {
+    "id": "Mãe da Avó Materna",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Clara Elalluf Benarroch ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Mãe da Avó Materna",
+    "relationshipInfo": {
+      "papel": "Mãe da Avó Materna"
+    }
+  },
+  {
+    "id": "Mãe da Avó Paterna",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Meriam Roffé Athias",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Mãe da Avó Paterna",
+    "relationshipInfo": {
+      "papel": "Mãe da Avó Paterna"
+    }
+  },
+  {
+    "id": "Mãe do Avô Materno",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Tiana Oliveira",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Mãe do Avô Materno",
+    "relationshipInfo": {
+      "papel": "Mãe do Avô Materno"
+    }
+  },
+  {
+    "id": "Mãe do Avô Paterno",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Rachel Barcessat",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Mãe do Avô Paterno",
+    "relationshipInfo": {
+      "papel": "Mãe do Avô Paterno"
+    }
+  },
+  {
+    "id": "Pai",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Isaac Barcessat ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": "Pai",
+    "_originalRole": "Pai",
+    "relationshipInfo": {
+      "papel": "Pai"
+    }
+  },
+  {
+    "id": "Pai da Avó Materna",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "José Guerson Benarroch G.",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Pai da Avó Materna",
+    "relationshipInfo": {
+      "papel": "Pai da Avó Materna"
+    }
+  },
+  {
+    "id": "Pai da Avó Paterna",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Fortunato Athias",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Pai da Avó Paterna",
+    "relationshipInfo": {
+      "papel": "Pai da Avó Paterna"
+    }
+  },
+  {
+    "id": "Pai do Avô Materno",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "José Oliveira",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Pai do Avô Materno",
+    "relationshipInfo": {
+      "papel": "Pai do Avô Materno"
+    }
+  },
+  {
+    "id": "Pai do Avô Paterno",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Messod Barcessat ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Pai do Avô Paterno",
+    "relationshipInfo": {
+      "papel": "Pai do Avô Paterno"
+    }
+  },
+  {
+    "id": "__filho_1",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Isaac Barcessat Rubinstein",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "__filho_1",
+    "relationshipInfo": {
+      "papel": "Outro 7"
+    }
+  },
+  {
+    "id": "aF8gSU51G2C91Jc4kFwc",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Elias Benarroch Barcessat ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "Eu mesmo",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Irmão"
+    }
+  },
+  {
+    "id": "ovveaniPJbbOgYU5Obek",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Nina Sarah Barcessat Frydman ",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Outro 8",
+    "relationshipInfo": {
+      "papel": "Irmã"
+    }
+  },
+  {
+    "id": "rB7Ek7EECmgI3lw3HTob",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Hannah Barcessat Rubinstein",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": "Outro 5",
+    "relationshipInfo": {
+      "papel": "Filho(a)"
+    }
+  },
+  {
+    "id": "s8OcOPnN2jSgqkCbYsV3",
+    "repId": "ClUpAGJdTCNCjky5vJEq3vY6vmE2",
+    "nomeCompleto": "Giselle Barcessat Freire",
+    "parentesco": "null",
+    "vinculoAcao": "null",
+    "vinculoFamiliarId": "null",
+    "_memoryKey": null,
+    "_originalRole": null,
+    "relationshipInfo": {
+      "papel": "Irmã"
+    }
+  }
+]

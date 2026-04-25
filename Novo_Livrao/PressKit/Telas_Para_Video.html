@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Livrão App - Showcase Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'history-gold': '#B8860B',
+                        'history-green': '#2F4F4F',
+                        'paper': '#FDFBF7'
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #e5e5e5;
+        }
+
+        .device-frame {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border-radius: 20px;
+            overflow: hidden;
+            background: #FDFBF7;
+            border: 8px solid #1a1a1a;
+            position: relative;
+        }
+
+        /* Efeito de vidro */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+
+<body class="p-10 space-y-20">
+
+    <!-- CABEÇALHO DO DOCUMENTO -->
+    <div class="text-center max-w-3xl mx-auto mb-16">
+        <h1 class="text-5xl font-serif font-bold text-history-green mb-4">Livrão da Família</h1>
+        <p class="text-xl text-stone-600">Kit de Telas de Alta Fidelidade para Produção de Vídeo</p>
+        <div class="h-1 w-24 bg-history-gold mx-auto mt-6"></div>
+    </div>
+
+    <!-- CENA 1: LOGIN ELEGANTE -->
+    <section class="max-w-4xl mx-auto">
+        <h2
+            class="text-2xl font-bold text-stone-400 mb-6 uppercase tracking-widest pl-4 border-l-4 border-history-gold">
+            01. Tela de Boas-Vindas</h2>
+        <div
+            class="device-frame aspect-video relative flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?ixlib=rb-1.2.1&auto=format&fit=crop&w=1500&q=80')] bg-cover bg-center">
+            <div class="absolute inset-0 bg-history-green/80 mix-blend-multiply"></div>
+
+            <div
+                class="glass-panel p-10 rounded-xl shadow-2xl max-w-md w-full relative z-10 text-center border-t-4 border-history-gold">
+                <div class="mb-6">
+                    <span class="text-5xl">📖</span>
+                </div>
+                <h1 class="text-3xl font-serif font-bold text-history-green mb-2">Livrão da Família</h1>
+                <p class="text-stone-600 mb-8 italic"> "Preservando memórias, conectando gerações." </p>
+
+                <div class="space-y-4">
+                    <button
+                        class="w-full bg-history-green text-white py-3 rounded-lg font-bold shadow-lg hover:bg-green-900 transition flex items-center justify-center gap-3">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z" />
+                        </svg>
+                        Entrar com Google
+                    </button>
+                    <p class="text-xs text-stone-500 mt-4">Versão Beta 1.0 • Comissão de Genealogia</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CENA 2: DASHBOARD DA ÁRVORE -->
+    <section class="max-w-4xl mx-auto">
+        <h2
+            class="text-2xl font-bold text-stone-400 mb-6 uppercase tracking-widest pl-4 border-l-4 border-history-gold">
+            02. Painel da Família (Dashboard)</h2>
+        <div class="device-frame aspect-video bg-paper p-8 overflow-y-auto">
+
+            <!-- Navbar -->
+            <div class="flex justify-between items-center mb-10 border-b border-stone-200 pb-4">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-10 h-10 rounded-full bg-history-green text-white flex items-center justify-center font-bold font-serif">
+                        DI</div>
+                    <div>
+                        <h3 class="font-bold text-stone-800">David Israel</h3>
+                        <p class="text-xs text-stone-500">Representante da Família</p>
+                    </div>
+                </div>
+                <button class="text-sm text-red-500 font-bold hover:underline">Sair</button>
+            </div>
+
+            <!-- Content -->
+            <div class="text-center mb-10">
+                <h2 class="text-3xl font-serif font-bold text-history-green mb-2">Membros da Família</h2>
+                <p class="text-stone-500">Selecione um cartão para começar ou continuar a biografia.</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+                <!-- Card 1: Pai (Completo) -->
+                <div
+                    class="bg-white p-4 rounded-xl shadow-md border border-stone-100 hover:shadow-xl transition group cursor-pointer relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+                    <div
+                        class="absolute top-2 right-2 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-bold">
+                        100%</div>
+
+                    <div
+                        class="w-20 h-20 mx-auto rounded-full bg-stone-200 mb-3 overflow-hidden border-2 border-white shadow-sm group-hover:scale-105 transition">
+                        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80"
+                            class="w-full h-full object-cover filter sepia">
+                    </div>
+                    <h3 class="text-center font-bold text-stone-800 font-serif">Simão Benayon</h3>
+                    <p class="text-center text-xs text-stone-500 mb-2">Pai</p>
+                    <div class="text-center text-xs text-green-600 font-bold flex items-center justify-center gap-1">
+                        <span>✓ Concluído</span>
+                    </div>
+                </div>
+
+                <!-- Card 2: Mãe (Em andamento) -->
+                <div
+                    class="bg-white p-4 rounded-xl shadow-md border border-stone-100 hover:shadow-xl transition group cursor-pointer relative overflow-hidden ring-2 ring-history-gold ring-offset-2">
+                    <div class="absolute top-0 left-0 w-full h-1 bg-history-gold"></div>
+                    <div
+                        class="absolute top-2 right-2 bg-yellow-100 text-yellow-700 text-xs px-2 py-1 rounded-full font-bold">
+                        45%</div>
+
+                    <div
+                        class="w-20 h-20 mx-auto rounded-full bg-stone-200 mb-3 overflow-hidden border-2 border-white shadow-sm">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80"
+                            class="w-full h-full object-cover filter grayscale opacity-80">
+                    </div>
+                    <h3 class="text-center font-bold text-stone-800 font-serif">Messody Abecassis</h3>
+                    <p class="text-center text-xs text-stone-500 mb-2">Mãe</p>
+                    <div class="w-full bg-stone-100 rounded-full h-1.5 mt-2">
+                        <div class="bg-history-gold h-1.5 rounded-full" style="width: 45%"></div>
+                    </div>
+                    <p class="text-center text-[10px] text-stone-400 mt-1">Editando agora...</p>
+                </div>
+
+                <!-- Card 3: Adicionar -->
+                <div
+                    class="bg-stone-50 border-2 border-dashed border-stone-300 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-white hover:border-history-gold transition text-stone-400 hover:text-history-gold">
+                    <span class="text-4xl mb-2">+</span>
+                    <span class="font-bold text-sm">Adicionar Familiar</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CENA 3: FORMULÁRIO COM DADOS RICOS (SMART FIELDS) -->
+    <section class="max-w-4xl mx-auto">
+        <h2
+            class="text-2xl font-bold text-stone-400 mb-6 uppercase tracking-widest pl-4 border-l-4 border-history-gold">
+            03. Preenchimento Inteligente</h2>
+        <div class="device-frame aspect-video bg-paper flex flex-col">
+
+            <!-- Form Header with Progress -->
+            <div class="bg-white p-6 border-b border-stone-200 shadow-sm z-10">
+                <div class="flex justify-between items-end mb-2">
+                    <h2 class="text-2xl font-serif font-bold text-history-green">Imigração e Chegada</h2>
+                    <span class="text-sm font-bold text-history-gold">Passo 4 de 11</span>
+                </div>
+                <div class="w-full bg-stone-100 h-1.5 rounded-full">
+                    <div class="bg-history-green h-1.5 rounded-full w-1/3"></div>
+                </div>
+            </div>
+
+            <!-- Form Body (Scrollable) -->
+            <div class="p-8 overflow-y-auto bg-stone-50/50 flex-1 space-y-8">
+
+                <!-- Field 1: Filled -->
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1">País de
+                        Origem</label>
+                    <div
+                        class="bg-white border border-stone-300 rounded-lg p-3 shadow-sm flex items-center justify-between">
+                        <span class="text-stone-800 font-medium">Marrocos</span>
+                        <span class="text-green-500 text-xl">✓</span>
+                    </div>
+                </div>
+
+                <!-- Field 2: The Smart Field Action -->
+                <div class="bg-white p-4 rounded-xl border border-history-gold/30 shadow-sm relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 bg-history-gold text-white text-[10px] px-2 py-0.5 rounded-bl-lg font-bold">
+                        SMART FIELD</div>
+
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Navio de
+                        Chegada</label>
+
+                    <!-- Input com texto -->
+                    <input type="text" value="Vapor Almirante Alexandrino"
+                        class="w-full px-4 py-3 rounded-lg border border-stone-300 focus:ring-2 focus:ring-history-gold outline-none text-stone-800 font-medium bg-white">
+
+                    <!-- Helper Text -->
+                    <div class="flex items-start gap-1 mt-2">
+                        <span class="font-serif font-bold text-history-gold italic">i</span>
+                        <p class="text-xs text-stone-500 italic">Nome da embarcação utilizada na viagem de imigração
+                            para o Brasil.</p>
+                    </div>
+
+                    <!-- Botões de Incerteza (Desativados pois tem texto) -->
+                    <div class="flex gap-4 mt-3 opacity-50 grayscale transition hover:grayscale-0 hover:opacity-100">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <div class="w-4 h-4 rounded-full border border-stone-400"></div>
+                            <span class="text-xs text-stone-500">Não sei</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <div class="w-4 h-4 rounded-full border border-stone-400"></div>
+                            <span class="text-xs text-stone-500">Não se aplica</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Field 3: Blocked State -->
+                <div class="opacity-70 group hover:opacity-100 transition">
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-2">Data da
+                        Naturalização</label>
+
+                    <div class="relative">
+                        <input type="text" value="[NÃO SEI]" disabled
+                            class="w-full px-4 py-3 rounded-lg border border-stone-200 bg-stone-100 text-stone-400 italic cursor-not-allowed">
+                        <div class="absolute inset-y-0 right-4 flex items-center">
+                            <span class="text-stone-300">🔒</span>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Incerteza (Ativo) -->
+                    <div class="flex gap-4 mt-3">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <div
+                                class="w-5 h-5 rounded-full border-2 border-history-gold bg-history-gold/10 flex items-center justify-center">
+                                <div class="w-2.5 h-2.5 bg-history-gold rounded-full"></div>
+                            </div>
+                            <span class="text-sm font-bold text-history-gold">Não sei</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer opacity-60">
+                            <div class="w-5 h-5 rounded-full border-2 border-stone-300"></div>
+                            <span class="text-sm text-stone-500">Não se aplica</span>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CENA 4: VIDA COMUNITÁRIA (RICAS INFORMAÇÕES) -->
+    <section class="max-w-4xl mx-auto">
+        <h2
+            class="text-2xl font-bold text-stone-400 mb-6 uppercase tracking-widest pl-4 border-l-4 border-history-gold">
+            04. Riqueza de Detalhes (Vida Judaica)</h2>
+        <div class="device-frame aspect-video bg-paper p-8 overflow-y-auto">
+
+            <h2 class="text-2xl font-serif font-bold text-history-green mb-6 border-b border-stone-200 pb-2">Vida Social
+                e Comunitária</h2>
+
+            <div class="space-y-6">
+                <!-- Sinagoga -->
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1">Sinagoga que
+                        Frequentava</label>
+                    <input type="text" value="Esnoga de Manaus (Beit Yaacov)"
+                        class="w-full px-4 py-3 rounded-lg border border-stone-300 bg-white">
+                </div>
+
+                <!-- Hebraico -->
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1">Professor de
+                        Hebraico?</label>
+                    <input type="text" value="Sim, ensinou Bar Mitzvá para os jovens da comunidade nos anos 50."
+                        class="w-full px-4 py-3 rounded-lg border border-stone-300 bg-white">
+                </div>
+
+                <!-- Hobbies (TextArea) -->
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-widest mb-1">Hobbies e
+                        Interesses</label>
+                    <textarea rows="3"
+                        class="w-full px-4 py-3 rounded-lg border border-stone-300 bg-white resize-none">Gostava muito de tocar violino e jogar xadrez nas tardes de domingo. Colecionava selos do império britânico.</textarea>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CENA 5: GALERIA DE MEMÓRIAS (COM 10 FOTOS) -->
+    <section class="max-w-4xl mx-auto pb-20">
+        <h2
+            class="text-2xl font-bold text-stone-400 mb-6 uppercase tracking-widest pl-4 border-l-4 border-history-gold">
+            05. Acervo Fotográfico Digital</h2>
+        <div class="device-frame aspect-video bg-stone-900 p-8 overflow-y-auto relative">
+
+            <!-- Header Galeria -->
+            <div
+                class="flex justify-between items-center mb-6 sticky top-0 bg-stone-900/95 backdrop-blur z-10 py-2 border-b border-stone-800">
+                <div>
+                    <h2 class="text-2xl font-serif font-bold text-white">Todas as Fotos</h2>
+                    <p class="text-xs text-stone-400">Acervo da Família Benayon • 10 itens</p>
+                </div>
+                <button
+                    class="bg-history-gold text-white px-4 py-2 rounded-full text-xs font-bold hover:bg-yellow-600 transition flex items-center gap-2">
+                    <span>+</span> Adicionar Foto
+                </button>
+            </div>
+
+            <!-- Grid de 10 Fotos: Curadoria Vintage & Histórica -->
+            <div class="grid grid-cols-3 md:grid-cols-4 gap-3">
+
+                <!-- 1. O Patriarca -->
+                <div
+                    class="aspect-square rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1544256718-3bcf237f3974?auto=format&fit=crop&w=400&q=80"
+                        class="w-full h-full object-cover filter sepia contrast-125 opacity-90 group-hover:scale-110 transition duration-700">
+                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-2 pt-6">
+                        <p
+                            class="text-[10px] text-white font-serif tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+                            Bisavô Isaac, 1920</p>
+                    </div>
+                </div>
+
+                <!-- 2. Casamento Antigo -->
+                <div
+                    class="aspect-square rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1531844251246-9a1bfaaeeb9a?auto=format&fit=crop&w=400&q=80"
+                        class="w-full h-full object-cover filter grayscale contrast-110 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition duration-700">
+                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-2 pt-6">
+                        <p
+                            class="text-[10px] text-white font-serif tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+                            Casamento em Tânger</p>
+                    </div>
+                </div>
+
+                <!-- 3. Navio/Imigração -->
+                <div
+                    class="aspect-square rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1505566085160-264639ed69d0?auto=format&fit=crop&w=400&q=80"
+                        class="w-full h-full object-cover filter sepia opacity-80 group-hover:opacity-100 group-hover:scale-110 transition duration-700">
+                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-2 pt-6">
+                        <p
+                            class="text-[10px] text-white font-serif tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+                            Vapor "Almirante"</p>
+                    </div>
+                </div>
+
+                <!-- 4. Família Reunida (Foto de Grupo) -->
+                <div
+                    class="aspect-square rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1569406606828-59c233190fc6?auto=format&fit=crop&w=400&q=80"
+                        class="w-full h-full object-cover filter sepia contrast-125 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition duration-700">
+                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-2 pt-6">
+                        <p
+                            class="text-[10px] text-white font-serif tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+                            Família em Manaus, 1945</p>
+                    </div>
+                </div>
+
+                <!-- 5. DESTAQUE: Documento Manuscrito -->
+                <div
+                    class="col-span-2 aspect-video rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1585848753229-373e34346c7d?auto=format&fit=crop&w=600&q=80"
+                        class="w-full h-full object-cover filter contrast-125 sepia opacity-90 group-hover:scale-105 transition duration-700">
+                    <div
+                        class="absolute top-2 right-2 bg-history-gold text-white text-[10px] px-2 py-0.5 rounded shadow z-10">
+                        Raridade</div>
+                    <div
+                        class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-3 pt-10">
+                        <p class="text-xs text-white font-serif tracking-widest uppercase">Carta de Naturalização
+                            (Original)</p>
+                    </div>
+                </div>
+
+                <!-- 6. A Matriarca -->
+                <div
+                    class="aspect-square rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1548123270-b8c7b4c6e268?auto=format&fit=crop&w=400&q=80"
+                        class="w-full h-full object-cover filter grayscale contrast-125 opacity-80 group-hover:opacity-100 transition">
+                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-2 pt-6">
+                        <p
+                            class="text-[10px] text-white font-serif tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+                            Vovó Estrella</p>
+                    </div>
+                </div>
+
+                <!-- 7. Crianças/Escola -->
+                <div
+                    class="aspect-square rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1520608421741-68228b76b6df?auto=format&fit=crop&w=400&q=80"
+                        class="w-full h-full object-cover filter sepia opacity-70 group-hover:opacity-100 transition">
+                </div>
+
+                <!-- 8. Arquitetura/Fachada Antiga -->
+                <div
+                    class="aspect-square rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1572061489650-7e7a79857734?auto=format&fit=crop&w=400&q=80"
+                        class="w-full h-full object-cover filter grayscale contrast-150 opacity-80 group-hover:opacity-100 transition">
+                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-2 pt-6">
+                        <p
+                            class="text-[10px] text-white font-serif tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+                            Loja do Centro</p>
+                    </div>
+                </div>
+
+                <!-- 9. Objeto/Livro de Oração -->
+                <div
+                    class="aspect-square rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
+                        class="w-full h-full object-cover filter sepia opacity-80 group-hover:opacity-100 transition">
+                </div>
+
+                <!-- 10. Passaporte/Selo -->
+                <div
+                    class="aspect-square rounded-lg overflow-hidden border border-stone-700 relative group cursor-pointer">
+                    <img src="https://images.unsplash.com/photo-1584444569427-d71d332612f0?auto=format&fit=crop&w=400&q=80"
+                        class="w-full h-full object-cover filter sepia contrast-125 opacity-80 group-hover:opacity-100 transition">
+                    <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/90 to-transparent p-2 pt-6">
+                        <p
+                            class="text-[10px] text-white font-serif tracking-widest uppercase opacity-0 group-hover:opacity-100 transition-opacity">
+                            Passaporte 1912</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</body>
+
+</html>

@@ -1,0 +1,49 @@
+{
+  "id": "livrao-da-familia",
+  "name": "Livrão da Família",
+  "short_name": "Livrão",
+  "description": "O Livrão da Família - Memórias, Histórias e Árvore Genealógica",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f5f4",
+  "theme_color": "#1c3d33",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/v2-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/v2-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/v2-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/brand-livrao.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Console do Livrão da Família"
+    },
+    {
+      "src": "/brand-livrao.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Livrão da Família — Desktop"
+    }
+  ]
+}

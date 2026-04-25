@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- FUNÇÕES AUXILIARES ---
+
+    // Verifica se o usuário está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+
+    // Busca dados do usuário atual no banco
+    function getUserData() {
+      return get(/databases/$(database)/documents/familias/$(request.auth.uid)).data;
+    }
+
+    // Verifica se o usuário NÃO está bloqueado
+    // Tratamento de edge cases: novo usuário ou documento não existe
+    function isNotBlocked() {
+       // Permite se: não autenticado OU documento não existe OU status != 'Bloqueado'
+       return request.auth == null || 
+              !exists(/databases/$(database)/documents/familias/$(request.auth.uid)) ||
+              get(/databases/$(database)/documents/familias/$(request.auth.uid)).data.status != 'Bloqueado';
+    }
+
+    // Verifica se é Admin (Básico ou Superior)
+    function isAdmin() {
+      let user = getUserData();
+      return user.adminRole != null && user.adminRole != 'none';
+    }
+
+    // --- REGRAS DE COLEÇÃO ---
+
+
+    // Regras para 'familias' (Usuários)
+    match /familias/{userId} {
+      // Leitura: 
+      // 1. O próprio usuário (se não bloqueado)
+      // 2. Qualquer Admin (se não bloqueado)
+      allow read: if isAuthenticated() && isNotBlocked() && 
+                  (request.auth.uid == userId || isAdmin());
+      
+      // Criação (Registro inicial):
+      // Permite criar seu próprio documento durante o registro
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Atualização/Exclusão:
+      // 1. O próprio usuário (se não bloqueado)
+      // 2. Admin (gestão/bloqueio)
+      allow update, delete: if isAuthenticated() && isNotBlocked() && 
+                              (request.auth.uid == userId || isAdmin());
+                   
+      // Subcoleção 'membros'
+      match /membros/{memberId} {
+         allow read, write: if isAuthenticated() && isNotBlocked() && 
+                            (request.auth.uid == userId || isAdmin());
+      }
+    }
+
+    // Regras para 'invites' (Convites)
+    match /invites/{token} {
+       // Leitura pública (para validar token no Registro)
+       allow read: if true;
+       
+       // Escrita apenas por Admins não bloqueados
+       allow write: if isAuthenticated() && isAdmin() && isNotBlocked();
+    }
+
+    // Regras para 'users' (Dados de Conta - Telefone, Cidade, Foto)
+    match /users/{userId} {
+       // Criação: qualquer usuário autenticado pode criar seu próprio documento
+       allow create: if request.auth != null && request.auth.uid == userId;
+       
+       // Leitura e Atualização: apenas o próprio usuário ou admins
+       allow read, update: if isAuthenticated() && 
+                              (request.auth.uid == userId || isAdmin());
+       
+       // Exclusão: apenas admins
+       allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Regras para 'admins' (Se houver coleção separada, mas usamos 'familias' com flag role)
+    // match /admins/{adminId} { ... }
+
+  }
+}

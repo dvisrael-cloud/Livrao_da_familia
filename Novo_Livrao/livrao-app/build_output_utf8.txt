@@ -1,0 +1,67 @@
+﻿
+> livrao-app@V08.03.26 build
+> vite build
+
+[36mvite v7.2.7 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 31 modules transformed.
+node.exe : [31mΓ£ù[39m Build failed in 811ms
+No linha:1 caractere:1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ( 
+   [31mΓ£ù[39m Build failed in 811ms:String)  
+   [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandErr 
+   or
+ 
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 1 
+error:
+C:/Projetos/Comissao_Livrao_de_Familia/Novo_Liv
+rao/livrao-app/src/features/Form/FormEngine.jsx
+:461:10: ERROR: The symbol 
+"handleFamilyTreeChange" has already been 
+declared[31m
+file: [36mC:/Projetos/Comissao_Livrao_de_Famil
+ia/Novo_Livrao/livrao-app/src/features/Form/For
+mEngine.jsx:461:10[31m
+[33m
+[33mThe symbol "handleFamilyTreeChange" has 
+already been declared[33m
+459 |  
+460 |      // ==================== FAMILY TREE 
+CHANGE HANDLER ====================
+461 |      const handleFamilyTreeChange = 
+useCallback((newVal, fieldId) => {
+    |            ^
+462 |          const existingData = 
+familyMembers[newVal.papel];
+463 |  
+[31m
+    at failureErrorWithLog (C:\Projetos\Comissa
+o_Livrao_de_Familia\Novo_Livrao\livrao-app\node
+_modules\esbuild\lib\main.js:1467:15)
+    at C:\Projetos\Comissao_Livrao_de_Familia\N
+ovo_Livrao\livrao-app\node_modules\esbuild\lib\
+main.js:736:50
+    at responseCallbacks.<computed> (C:\Projeto
+s\Comissao_Livrao_de_Familia\Novo_Livrao\livrao
+-app\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (C:\Projetos\Comiss
+ao_Livrao_de_Familia\Novo_Livrao\livrao-app\nod
+e_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (C:\Projetos\Comis
+sao_Livrao_de_Familia\Novo_Livrao\livrao-app\no
+de_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk 
+(node:internal/streams/readable:559:12)
+    at readableAddChunkPushByteMode 
+(node:internal/streams/readable:510:3)
+    at Readable.push 
+(node:internal/streams/readable:390:5)
+    at Pipe.onStreamRead 
+(node:internal/stream_base_commons:189:23)[39m

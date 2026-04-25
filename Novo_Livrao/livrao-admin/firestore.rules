@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // --- FUNÇÕES AUXILIARES ---
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/familias/$(request.auth.uid)).data;
+    }
+
+    function isNotBlocked() {
+       return request.auth == null || 
+              !exists(/databases/$(database)/documents/familias/$(request.auth.uid)) ||
+              get(/databases/$(database)/documents/familias/$(request.auth.uid)).data.status != 'Bloqueado';
+    }
+
+    // Qualquer admin (basic ou superior)
+    function isAdmin() {
+      let user = getUserData();
+      return user.adminRole != null && user.adminRole != 'none';
+    }
+
+    // Super-admin: adminRole pleno ou master
+    function isSuperAdmin() {
+      let user = getUserData();
+      return user.adminRole == 'pleno' || user.adminRole == 'master';
+    }
+
+    // --- REGRAS DE COLEÇÃO ---
+
+    match /familias/{userId} {
+      allow read: if isAuthenticated() && isNotBlocked() && 
+                  (request.auth.uid == userId || isAdmin());
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if isAuthenticated() && isNotBlocked() && 
+                              (request.auth.uid == userId || isAdmin());
+               
+      match /membros/{memberId} {
+         allow read, write: if isAuthenticated() && isNotBlocked() && 
+                            (request.auth.uid == userId || isAdmin());
+      }
+    }
+
+    match /invites/{token} {
+       allow read: if true;
+       allow write: if isAuthenticated() && isAdmin() && isNotBlocked();
+    }
+
+    match /users/{userId} {
+       allow create: if request.auth != null && request.auth.uid == userId;
+       allow read, update: if isAuthenticated() && 
+                              (request.auth.uid == userId || isAdmin());
+       allow delete: if isAuthenticated() && isAdmin();
+    }
+
+    // Logs do sistema — leitura e escrita para qualquer admin ativo
+    match /system_logs/{logId} {
+       allow read, write: if isAuthenticated() && isAdmin() && isNotBlocked();
+    }
+
+  }
+}

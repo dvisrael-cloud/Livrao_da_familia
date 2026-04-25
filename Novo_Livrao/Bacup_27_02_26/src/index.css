@@ -1,0 +1,80 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-history-green: #2F4F4F;
+  --color-parchment: #F5F5DC;
+  --color-gold-accent: #DAA520;
+
+  --font-serif: "Inter", sans-serif;
+  --font-sans: "Inter", sans-serif;
+  --font-playfair: "Playfair Display", serif;
+}
+
+@layer base {
+  body {
+    @apply bg-parchment text-gray-800 font-sans;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-serif text-history-green;
+  }
+}
+
+@layer utilities {
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+  }
+
+  /* Smooth scroll behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+}
+
+@media print {
+  @page {
+    margin: 20mm;
+  }
+
+  /* Hide unnecessary elements during print */
+  header,
+  .fixed.bottom-0,
+  /* The bottom button bar */
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Ensure background colors are printed */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Clean up layout */
+  body {
+    background: white;
+  }
+
+  .bg-white {
+    box-shadow: none !important;
+    border: none !important;
+  }
+}

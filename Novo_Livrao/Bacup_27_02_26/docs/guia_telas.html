@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Telas — Livrão da Família</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --green-dark: #1a5c3a;
+            --green-mid: #2e8b57;
+            --green-light: #4ade80;
+            --gold: #c5a44e;
+            --gold-light: #f5e6b8;
+            --bg: #f8f6f1;
+            --card-bg: #ffffff;
+            --text-dark: #1a1a2e;
+            --text-mid: #4a4a6a;
+            --text-light: #7a7a9a;
+            --border: #e8e6e1;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.12);
+            --radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-dark);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* HERO HEADER */
+        .hero {
+            background: linear-gradient(135deg, var(--green-dark) 0%, #0d3d23 100%);
+            color: white;
+            padding: 60px 24px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 30% 70%, rgba(78, 173, 128, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(197, 164, 78, 0.1) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) rotate(0deg);
+            }
+
+            50% {
+                transform: translate(-2%, 2%) rotate(1deg);
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 16px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(32px, 5vw, 48px);
+            font-weight: 900;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 16px;
+            opacity: 0.8;
+            max-width: 500px;
+            margin: 0 auto 32px;
+            font-weight: 300;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-number {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--green-light);
+        }
+
+        .hero-stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            opacity: 0.6;
+        }
+
+        /* NAV SIDEBAR */
+        .nav-bar {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .nav-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .nav-inner::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-mid);
+            text-decoration: none;
+            white-space: nowrap;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--green-dark);
+            color: white;
+            border-color: var(--green-dark);
+        }
+
+        .nav-link.active {
+            background: var(--green-dark);
+            color: white;
+        }
+
+        /* MAIN CONTENT */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 48px 24px 80px;
+        }
+
+        /* SCREEN CARD */
+        .screen-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-bottom: 48px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: box-shadow 0.3s, transform 0.3s;
+            scroll-margin-top: 80px;
+        }
+
+        .screen-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            padding: 28px 32px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .card-icon.login {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+        }
+
+        .card-icon.hub {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        }
+
+        .card-icon.tree {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+        }
+
+        .card-icon.form {
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+        }
+
+        .card-icon.gallery {
+            background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+        }
+
+        .card-icon.recipes {
+            background: linear-gradient(135deg, #ffe4e6, #fecdd3);
+        }
+
+        .card-icon.account {
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+        }
+
+        .card-icon.success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+        }
+
+        .card-icon.welcome {
+            background: linear-gradient(135deg, #fef9c3, #fef08a);
+        }
+
+        .card-icon.goodbye {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        }
+
+        .card-header-text h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 4px;
+            color: var(--text-dark);
+        }
+
+        .card-header-text .tech-name {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f1f5f9;
+            color: #475569;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+
+        .card-header-text .file-path {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 6px;
+        }
+
+        .card-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+        }
+
+        @media (max-width: 768px) {
+            .card-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card-screenshot {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            position: relative;
+            border-right: 1px solid var(--border);
+        }
+
+        @media (max-width: 768px) {
+            .card-screenshot {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+
+        .card-screenshot img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .card-screenshot img:hover {
+            transform: scale(1.02);
+        }
+
+        .card-screenshot .no-img {
+            text-align: center;
+            color: var(--text-light);
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .card-screenshot .no-img span {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 8px;
+            opacity: 0.4;
+        }
+
+        .card-details {
+            padding: 28px 32px;
+        }
+
+        .card-details h3 {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-light);
+            margin-bottom: 12px;
+        }
+
+        .card-details p {
+            font-size: 14px;
+            color: var(--text-mid);
+            margin-bottom: 20px;
+        }
+
+        .element-list {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .element-list li {
+            font-size: 13px;
+            padding: 6px 0;
+            color: var(--text-mid);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .element-list li:last-child {
+            border-bottom: none;
+        }
+
+        .element-list li .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green-mid);
+            flex-shrink: 0;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-top: 16px;
+        }
+
+        .tip-box .tip-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--green-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 6px;
+        }
+
+        .tip-box .tip-text {
+            font-size: 13px;
+            color: var(--green-dark);
+            line-height: 1.5;
+        }
+
+        .tip-box .tip-text em {
+            background: white;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        .tip-box .tip-avoid {
+            color: #b91c1c;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        /* TABLE SECTION */
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .section-subtitle {
+            font-size: 14px;
+            color: var(--text-light);
+            margin-bottom: 32px;
+        }
+
+        .tabs-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .tabs-table th {
+            background: #f8fafc;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-light);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tabs-table td {
+            padding: 10px 14px;
+            font-size: 13px;
+            color: var(--text-mid);
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .tabs-table td:first-child {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        /* NAV MAP */
+        .nav-map-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 40px;
+            margin-bottom: 48px;
+            box-shadow: var(--shadow);
+            scroll-margin-top: 80px;
+        }
+
+        .nav-map-card pre {
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--green-dark);
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        /* GLOSSARY */
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
+        }
+
+        .glossary-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .glossary-item:hover {
+            border-color: var(--green-mid);
+            box-shadow: 0 2px 12px rgba(46, 139, 87, 0.08);
+        }
+
+        .glossary-arrow {
+            color: var(--green-mid);
+            font-weight: 800;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .glossary-from {
+            font-size: 13px;
+            color: var(--text-mid);
+            flex: 1;
+        }
+
+        .glossary-to {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--green-dark);
+            flex: 1;
+            text-align: right;
+        }
+
+        /* LIGHTBOX */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+            animation: fadeIn 0.2s;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 40px 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-light);
+            font-size: 13px;
+        }
+
+        .footer strong {
+            color: var(--text-mid);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HERO -->
+    <header class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">📖 Documentação Interna</div>
+            <h1>Guia de Telas do<br><span>Livrão da Família</span></h1>
+            <p>Referência visual de todas as telas do aplicativo com nomes técnicos, descrições e dicas de comunicação.
+            </p>
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <div class="hero-stat-number">11</div>
+                    <div class="hero-stat-label">Telas Mapeadas</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-number">6</div>
+                    <div class="hero-stat-label">Com Screenshot</div>
+                </div>
+                <div class="hero-stat">
+                    <div class="hero-stat-number">v1.5</div>
+                    <div class="hero-stat-label">Versão Beta</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION -->
+    <nav class="nav-bar">
+        <div class="nav-inner">
+            <a href="#login" class="nav-link">🔐 Login</a>
+            <a href="#hub" class="nav-link">🏠 Console</a>
+            <a href="#tree" class="nav-link">🌳 Árvore</a>
+            <a href="#form" class="nav-link">📋 Formulário</a>
+            <a href="#gallery" class="nav-link">📸 Galeria</a>
+            <a href="#recipes" class="nav-link">🍳 Receitas</a>
+            <a href="#account" class="nav-link">⚙️ Conta</a>
+            <a href="#glossary" class="nav-link">📚 Glossário</a>
+            <a href="#map" class="nav-link">🗺️ Mapa</a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+
+        <!-- 1. LOGIN -->
+        <div class="screen-card" id="login">
+            <div class="card-header">
+                <div class="card-icon login">🔐</div>
+                <div class="card-header-text">
+                    <h2>Tela de Login</h2>
+                    <div class="tech-name">💻 LoginForm</div>
+                    <div class="file-path">📁 src/features/Auth/LoginForm.jsx &nbsp;•&nbsp; view = 'login'</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <img src="screenshots/01_login.png" alt="Tela de Login" onclick="openLightbox(this)">
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>Permite ao usuário entrar no sistema com e-mail e senha. É a primeira tela que o usuário vê ao
+                        acessar o app.</p>
+
+                    <h3>Elementos visíveis</h3>
+                    <ul class="element-list">
+                        <li><span class="dot"></span>Logo "LIVRÃO DA FAMÍLIA"</li>
+                        <li><span class="dot"></span>Campo de E-mail</li>
+                        <li><span class="dot"></span>Campo de Senha (com botão mostrar/ocultar)</li>
+                        <li><span class="dot"></span>Botão "Entrar"</li>
+                        <li><span class="dot"></span>Link "Ir para Minha Conta"</li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"Na tela de Login"</em></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. WELCOME -->
+        <div class="screen-card" id="welcome">
+            <div class="card-header">
+                <div class="card-icon welcome">🎉</div>
+                <div class="card-header-text">
+                    <h2>Tela de Boas-Vindas</h2>
+                    <div class="tech-name">💻 WelcomeScreen</div>
+                    <div class="file-path">📁 src/features/Welcome/WelcomeScreen.jsx &nbsp;•&nbsp; view = 'welcome'
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <div class="no-img">
+                        <span>🎉</span>
+                        Tela de transição — aparece brevemente<br>após o login antes de ir ao Console.
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>Exibida logo após o login. Dá as boas-vindas ao usuário pelo nome antes de direcioná-lo ao painel
+                        principal (Console).</p>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"Na tela de boas-vindas"</em></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. HUB -->
+        <div class="screen-card" id="hub">
+            <div class="card-header">
+                <div class="card-icon hub">🏠</div>
+                <div class="card-header-text">
+                    <h2>Console / Painel Principal</h2>
+                    <div class="tech-name">💻 UserHub</div>
+                    <div class="file-path">📁 src/features/Hub/UserHub.jsx &nbsp;•&nbsp; view = 'hub'</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <img src="screenshots/02_console_hub.png" alt="Console / Hub" onclick="openLightbox(this)">
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>É o menu central do app. A partir daqui, o usuário escolhe para onde ir: Árvore, Álbum, Receitas
+                        ou Configurações.</p>
+
+                    <h3>Elementos visíveis</h3>
+                    <ul class="element-list">
+                        <li><span class="dot"></span>Nome do usuário (ex: "David Israel")</li>
+                        <li><span class="dot"></span>Palavra "CONSOLE" abaixo do nome</li>
+                        <li><span class="dot"></span>Card <strong>"Árvore Familiar"</strong></li>
+                        <li><span class="dot"></span>Card <strong>"Álbum Digital"</strong></li>
+                        <li><span class="dot"></span>Card <strong>"Receitas"</strong></li>
+                        <li><span class="dot"></span>Botão <strong>"Minha Conta (Configurações)"</strong></li>
+                        <li><span class="dot"></span>Link <strong>"Sair com segurança"</strong></li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"No Console"</em> ou <em>"No Painel Principal"</em> ou <em>"No
+                                Hub"</em></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. TREE -->
+        <div class="screen-card" id="tree">
+            <div class="card-header">
+                <div class="card-icon tree">🌳</div>
+                <div class="card-header-text">
+                    <h2>Árvore Familiar</h2>
+                    <div class="tech-name">💻 FamilyTreeSelector</div>
+                    <div class="file-path">📁 src/components/FamilyTreeSelector.jsx &nbsp;•&nbsp; view = 'form', passo 2
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <img src="screenshots/03_arvore_familiar.png" alt="Árvore Familiar" onclick="openLightbox(this)">
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>Mostra a árvore genealógica da família com cards de cada membro, organizados hierarquicamente.
+                        Permite selecionar um familiar para editar.</p>
+
+                    <h3>Elementos visíveis</h3>
+                    <ul class="element-list">
+                        <li><span class="dot"></span>Barra de progresso "PROGRESSO TOTAL DA FAMÍLIA X%"</li>
+                        <li><span class="dot"></span>Abas: Identidade, Família e vida, Trajetória, Memórias Vivas</li>
+                        <li><span class="dot"></span>Cards: Bisavós → Avós → Pais → Representante → Irmãos</li>
+                        <li><span class="dot"></span>Barras de progresso coloridas em cada card</li>
+                        <li><span class="dot"></span>Botão "+ PARENTE" para adicionar membros</li>
+                        <li><span class="dot"></span>Botão "SAIR" para voltar ao Console</li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"Na Árvore Familiar"</em> ou <em>"Na tela da Árvore"</em></div>
+                        <div class="tip-avoid">❌ Evite: "repositório da árvore"</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. FORM -->
+        <div class="screen-card" id="form">
+            <div class="card-header">
+                <div class="card-icon form">📋</div>
+                <div class="card-header-text">
+                    <h2>Formulário de Edição</h2>
+                    <div class="tech-name">💻 FormEngine</div>
+                    <div class="file-path">📁 src/features/Form/FormEngine.jsx &nbsp;•&nbsp; view = 'form', passo ≥ 3
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <img src="screenshots/04_formulario_edicao.png" alt="Formulário de Edição"
+                        onclick="openLightbox(this)">
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>Formulário para preencher/editar os dados de um familiar. Possui várias seções organizadas em
+                        abas.</p>
+
+                    <h3>Seções (Abas)</h3>
+                    <table class="tabs-table">
+                        <thead>
+                            <tr>
+                                <th>Aba</th>
+                                <th>Nome Técnico</th>
+                                <th>Conteúdo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Identidade</td>
+                                <td>Identity</td>
+                                <td>Nome, apelido, nascimento</td>
+                            </tr>
+                            <tr>
+                                <td>Família e Vida</td>
+                                <td>FamilyVital</td>
+                                <td>Conjugal, filhos, vitais</td>
+                            </tr>
+                            <tr>
+                                <td>Trajetória</td>
+                                <td>LifeCulture</td>
+                                <td>Educação, profissão</td>
+                            </tr>
+                            <tr>
+                                <td>Memórias Vivas</td>
+                                <td>Narrative</td>
+                                <td>Histórias, relatos</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Botões do Header</h3>
+                    <ul class="element-list">
+                        <li><span class="dot" style="background:#f59e0b"></span>🟧 Sair sem Salvar</li>
+                        <li><span class="dot" style="background:#ef4444"></span>🟥 Apagar Parente</li>
+                        <li><span class="dot" style="background:#3b82f6"></span>🟦 Salvar Dados</li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"No formulário de edição"</em> ou <em>"Na ficha do Pai"</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. GALLERY -->
+        <div class="screen-card" id="gallery">
+            <div class="card-header">
+                <div class="card-icon gallery">📸</div>
+                <div class="card-header-text">
+                    <h2>Galeria de Fotos</h2>
+                    <div class="tech-name">💻 PhotoGalleryModal</div>
+                    <div class="file-path">📁 src/features/Gallery/PhotoGalleryModal.jsx</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <div class="no-img">
+                        <span>📸</span>
+                        Modal (janela flutuante) — abre sobre<br>a tela atual para ver/adicionar fotos.
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>Janela flutuante (modal) que abre sobre a tela atual. Permite ver e adicionar fotos de um
+                        familiar específico.</p>
+
+                    <h3>Como acessar</h3>
+                    <ul class="element-list">
+                        <li><span class="dot"></span>Pelo card "Álbum Digital" no Console</li>
+                        <li><span class="dot"></span>Pelo ícone de câmera na NavBar do Formulário</li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"Na galeria de fotos"</em> ou <em>"No álbum do [Nome]"</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. RECIPES -->
+        <div class="screen-card" id="recipes">
+            <div class="card-header">
+                <div class="card-icon recipes">🍳</div>
+                <div class="card-header-text">
+                    <h2>Receitas da Família</h2>
+                    <div class="tech-name">💻 RecipesPage</div>
+                    <div class="file-path">📁 src/features/Recipes/RecipesPage.jsx &nbsp;•&nbsp; view = 'recipes'</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <img src="screenshots/05_receitas.png" alt="Receitas da Família" onclick="openLightbox(this)">
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>Página para preservar receitas tradicionais da família. Cada receita pode ter ingredientes, modo
+                        de preparo, tags e informações de contexto.</p>
+
+                    <h3>Elementos visíveis</h3>
+                    <ul class="element-list">
+                        <li><span class="dot"></span>Header "Receitas de Família"</li>
+                        <li><span class="dot"></span>Botão "Nova Receita"</li>
+                        <li><span class="dot"></span>Cards de receitas (ex: "Gefilte Fish da Vovó")</li>
+                        <li><span class="dot"></span>Tempo de preparo, rendimento</li>
+                        <li><span class="dot"></span>Tags: Shabat, Médio, etc.</li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"Na página de receitas"</em> ou <em>"No livro de receitas"</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. ACCOUNT -->
+        <div class="screen-card" id="account">
+            <div class="card-header">
+                <div class="card-icon account">⚙️</div>
+                <div class="card-header-text">
+                    <h2>Minha Conta</h2>
+                    <div class="tech-name">💻 AccountSettings</div>
+                    <div class="file-path">📁 src/features/Account/AccountSettings.jsx &nbsp;•&nbsp; view = 'account'
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <img src="screenshots/06_minha_conta.png" alt="Minha Conta" onclick="openLightbox(this)">
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>Permite ao representante atualizar seus dados pessoais: foto, telefone, cidade e profissão.</p>
+
+                    <h3>Elementos visíveis</h3>
+                    <ul class="element-list">
+                        <li><span class="dot"></span>Foto do usuário (Selfie)</li>
+                        <li><span class="dot"></span>Botão "Atualizar Selfie"</li>
+                        <li><span class="dot"></span>Telefone (WhatsApp)</li>
+                        <li><span class="dot"></span>E-mail de login (somente leitura)</li>
+                        <li><span class="dot"></span>Cidade Atual</li>
+                        <li><span class="dot"></span>Profissão</li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"Na tela de Minha Conta"</em> ou <em>"Nas configurações"</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 9. SUCCESS -->
+        <div class="screen-card" id="success">
+            <div class="card-header">
+                <div class="card-icon success">✅</div>
+                <div class="card-header-text">
+                    <h2>Tela de Sucesso</h2>
+                    <div class="tech-name">💻 view = 'success'</div>
+                    <div class="file-path">📁 Componente inline em App.jsx</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <div class="no-img">
+                        <span>✅</span>
+                        Aparece após salvar dados com sucesso.<br>"Cadastro Salvo com Sucesso!"
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>Aparece após salvar dados com sucesso. Confirma ao usuário que tudo foi gravado.</p>
+
+                    <h3>Elementos visíveis</h3>
+                    <ul class="element-list">
+                        <li><span class="dot"></span>Ícone de check verde</li>
+                        <li><span class="dot"></span>"Cadastro Salvo com Sucesso!"</li>
+                        <li><span class="dot"></span>Botão "Incluir ou Editar Membro Familiar"</li>
+                        <li><span class="dot"></span>Botão "Voltar ao Console"</li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"Na tela de confirmação"</em> ou <em>"Na tela de sucesso"</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 10. GOODBYE -->
+        <div class="screen-card" id="goodbye">
+            <div class="card-header">
+                <div class="card-icon goodbye">👋</div>
+                <div class="card-header-text">
+                    <h2>Tela de Despedida</h2>
+                    <div class="tech-name">💻 view = 'goodbye'</div>
+                    <div class="file-path">📁 Componente inline em App.jsx</div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="card-screenshot">
+                    <div class="no-img">
+                        <span>👋</span>
+                        "Até logo, [Nome]!"<br>Aparece ao sair do app.
+                    </div>
+                </div>
+                <div class="card-details">
+                    <h3>O que faz</h3>
+                    <p>Aparece quando o usuário clica em "Sair com segurança". Mostra mensagem de despedida.</p>
+
+                    <h3>Elementos visíveis</h3>
+                    <ul class="element-list">
+                        <li><span class="dot"></span>Emoji 👋</li>
+                        <li><span class="dot"></span>"Até logo, [Nome]!"</li>
+                        <li><span class="dot"></span>Botão "Voltar ao Início"</li>
+                    </ul>
+
+                    <div class="tip-box">
+                        <div class="tip-title">💡 Como se referir</div>
+                        <div class="tip-text">Diga: <em>"Na tela de despedida"</em> ou <em>"Na tela de logout"</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NAV MAP -->
+        <div class="nav-map-card" id="map">
+            <h2 class="section-title">🗺️ Mapa de Navegação</h2>
+            <p class="section-subtitle">Fluxo completo de telas do aplicativo</p>
+            <pre>
+LOGIN ──→ BOAS-VINDAS ──→ CONSOLE (HUB)
+                              │
+                    ┌─────────┼─────────┐──────────┐
+                    │         │         │          │
+                    ▼         ▼         ▼          ▼
+              ÁRVORE     ÁLBUM    RECEITAS    MINHA CONTA
+              FAMILIAR   DIGITAL
+                 │
+                 ▼
+           FORMULÁRIO
+           DE EDIÇÃO
+                 │
+                 ▼
+              SUCESSO ──→ CONSOLE
+            </pre>
+        </div>
+
+        <!-- GLOSSARY -->
+        <div id="glossary">
+            <h2 class="section-title">📚 Glossário Rápido</h2>
+            <p class="section-subtitle">Use estes termos para se comunicar de forma clara sobre o app</p>
+
+            <div class="glossary-grid">
+                <div class="glossary-item">
+                    <div class="glossary-from">A tela onde faço login</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Tela de Login</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">A tela principal com os cards</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Console / Hub</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">A tela com os parentes da família</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Árvore Familiar</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">Onde preencho dados de um parente</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Formulário de Edição</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">A tela de fotos</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Galeria de Fotos</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">A tela de receitas</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Página de Receitas</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">Onde mudo meus dados pessoais</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Minha Conta</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">Janela flutuante sobre a tela</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Modal</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">As abas no topo do formulário</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Barra de Navegação</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">A barra que mostra % preenchido</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Barra de Progresso</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">Cada retângulo com nome na árvore</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Card (cartão)</div>
+                </div>
+                <div class="glossary-item">
+                    <div class="glossary-from">O menu de opções que abre pra baixo</div>
+                    <div class="glossary-arrow">→</div>
+                    <div class="glossary-to">Dropdown</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <strong>Livrão da Família</strong> © 2025 — Comissão de Genealogia e Memória<br>
+        Documento gerado em 23/02/2026 • v1.5 Beta
+    </footer>
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <img id="lightbox-img" src="" alt="Preview">
+    </div>
+
+    <script>
+        // Lightbox
+        function openLightbox(img) {
+            document.getElementById('lightbox-img').src = img.src;
+            document.getElementById('lightbox').classList.add('active');
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+        }
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+
+        // Active nav on scroll
+        const sections = document.querySelectorAll('.screen-card, .nav-map-card, #glossary');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    navLinks.forEach(link => {
+                        link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+                    });
+                }
+            });
+        }, { rootMargin: '-20% 0px -70% 0px' });
+
+        sections.forEach(section => {
+            if (section.id) observer.observe(section);
+        });
+    </script>
+</body>
+
+</html>

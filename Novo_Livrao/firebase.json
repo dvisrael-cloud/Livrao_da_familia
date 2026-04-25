@@ -1,0 +1,40 @@
+{
+    "firestore": {
+        "rules": "livrao-admin/firestore.rules"
+    },
+    "storage": {
+        "rules": "storage.rules"
+    },
+    "hosting": [
+        {
+            "site": "album-familia-1beta",
+            "public": "livrao-app/dist",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+            ],
+            "rewrites": [
+                {
+                    "source": "**",
+                    "destination": "/index.html"
+                }
+            ]
+        },
+        {
+            "site": "admin-1beta",
+            "public": "livrao-admin/dist",
+            "ignore": [
+                "firebase.json",
+                "**/.*",
+                "**/node_modules/**"
+            ],
+            "rewrites": [
+                {
+                    "source": "**",
+                    "destination": "/index.html"
+                }
+            ]
+        }
+    ]
+}

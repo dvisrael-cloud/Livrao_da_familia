@@ -1,0 +1,642 @@
+import React, { useState, useRef, useMemo } from 'react';
+import { Users, Fingerprint } from 'lucide-react';
+
+// Função auxiliar movida para fora para otimizar a performance
+const calculateProgress = (data) => {
+    if (!data) return 0;
+    const baseFields = ['nomeCompleto', 'dataNascimento', 'localNascimento_cidade', 'localNascimento_pais', 'religiao', 'nomePai', 'nomeMae', 'situacaoConjugal', 'situacaoVital', 'biography', 'resumoHistorico'];
+    let filled = 0;
+    let total = baseFields.length + 1;
+    baseFields.forEach(f => { if (data[f] && typeof data[f] === 'string' && data[f].trim() !== '') filled++; });
+    if (data.fotoIdentificacao?.length > 0 || data.photoMain) filled++;
+
+    if (data.situacaoVital === 'Falecido') {
+        const deathFields = ['dataFalecimento', 'localFalecimento_cidade', 'causaMorte'];
+        total += deathFields.length;
+        deathFields.forEach(f => { if (data[f] && typeof data[f] === 'string' && data[f].trim() !== '') filled++; });
+    }
+    return Math.round((filled / total) * 100);
+};
+
+export const FamilyTreeSelector = ({
+    value,
+    onChange,
+    membersData = {},
+    onNext
+}) => {
+    const containerRef = useRef(null);
+    const [expandedRole, setExpandedRole] = useState(null);
+    const [childrenModal, setChildrenModal] = useState(null);
+    const [showOutroModal, setShowOutroModal] = useState(false);
+
+    const GRID_COLS = 34;
+    const GRID_ROWS = 65;
+    const SCALE_FACTOR = 1.3;
+    const CARD_H = 3.90;
+    const V_STEP = 5.5;
+    const START_Y = 24.5;
+    const RIGHT_X = 25.0;
+    const RIGHT_W = 5.84;
+    const LEFT_W = 5.84;
+    const COL_X = 1.0;
+
+    const familyButtonsGrid = [
+        // NÍVEL 4: BISAVÓS (MINI)
+        { role: 'Pai da Avó Paterna', label: 'BISAVÔ', x: 1.68, y: 1.5, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Mãe da Avó Paterna', label: 'BISAVÓ', x: 1.68, y: 6.4, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Pai do Avô Paterno', label: 'BISAVÔ', x: 9.54, y: 1.5, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Mãe do Avô Paterno', label: 'BISAVÓ', x: 9.54, y: 6.4, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Pai da Avó Materna', label: 'BISAVÔ', x: 17.98, y: 1.5, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Mãe da Avó Materna', label: 'BISAVÓ', x: 17.98, y: 6.4, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Pai do Avô Materno', label: 'BISAVÔ', x: 25.99, y: 1.5, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+        { role: 'Mãe do Avô Materno', label: 'BISAVÓ', x: 25.99, y: 6.4, w: 5.84, h: 3.90, level: 4, type: 'bisavo', size: 'mini' },
+
+        // NÍVEL 3: AVÓS (MINI)
+        { role: 'Avó Paterna', label: 'AVÓ PATERNA', x: 1.68, y: 12.5, w: 5.84, h: 3.90, level: 3, type: 'avo', size: 'mini' },
+        { role: 'Avô Paterno', label: 'AVÔ PATERNO', x: 9.54, y: 12.5, w: 5.84, h: 3.90, level: 3, type: 'avo', size: 'mini' },
+        { role: 'Avó Materna', label: 'AVÓ MATERNA', x: 17.98, y: 12.5, w: 5.84, h: 3.90, level: 3, type: 'avo', size: 'mini' },
+        { role: 'Avô Materno', label: 'AVÔ MATERNO', x: 25.99, y: 12.5, w: 5.84, h: 3.90, level: 3, type: 'avo', size: 'mini' },
+
+        // NÍVEL 2: PAIS (MÉDIO)
+        { role: 'Pai', label: 'PAI', x: 3.53, y: 18.5, w: 10.00, h: 3.90, level: 2, type: 'pai', size: 'medio' },
+        { role: 'Mãe', label: 'MÃE', x: 19.90, y: 18.5, w: 10.00, h: 3.90, level: 2, type: 'mae', size: 'medio' },
+
+        // NÍVEL 1: REPRESENTANTE (GRANDE)
+        { role: 'Eu mesmo', label: 'REPRESENTANTE FAMILIAR', x: 11.715, y: 24.5, w: 10.00, h: 3.90, level: 1, type: 'representante', size: 'grande' },
+    ];
+
+    const familyButtons = useMemo(() => {
+        const gridWithSpouse = [...familyButtonsGrid];
+        const repData = membersData['Eu mesmo'] || {};
+        const isMarried = ['Casado', 'Divorciado', 'Viúvo', 'União Estável'].includes(repData.situacaoConjugal);
+
+        const MARRIAGE_LEVELS = [
+            { suffix: '', role: 'Cônjuge', label: '1º ESPOSO(A)', active: isMarried },
+            { suffix: '_2', role: 'Cônjuge 2', label: '2º ESPOSO(A)', active: !!repData.remarried_1 },
+            { suffix: '_3', role: 'Cônjuge 3', label: '3º ESPOSO(A)', active: !!repData.remarried_2 },
+            { suffix: '_4', role: 'Cônjuge 4', label: '4º ESPOSO(A)', active: !!repData.remarried_3 }
+        ];
+
+        let rightIdx = 0;
+        let globalChildIdx = 0;
+
+        MARRIAGE_LEVELS.forEach((m) => {
+            if (m.active) {
+                gridWithSpouse.push({
+                    role: m.role, label: m.label, x: RIGHT_X, y: START_Y + rightIdx * V_STEP,
+                    w: RIGHT_W, h: CARD_H, level: 1, type: 'conjuge', size: 'mini'
+                });
+                rightIdx++;
+
+                const marriageChildren = [];
+                const childrenText = repData[`children${m.suffix}`] || '';
+                if (childrenText) marriageChildren.push(...childrenText.split(',').map(c => c.trim()).filter(Boolean));
+                for (let i = 1; i <= 12; i++) {
+                    const name = repData[`nomeFilho${i}${m.suffix}`];
+                    if (name) marriageChildren.push(name.trim());
+                }
+
+                [...new Set(marriageChildren)].forEach((childName) => {
+                    gridWithSpouse.push({
+                        role: `__filho_${globalChildIdx}`, label: `FILHO ${globalChildIdx + 1}`,
+                        x: RIGHT_X, y: START_Y + rightIdx * V_STEP, w: RIGHT_W, h: CARD_H,
+                        level: 1, type: 'filho_individual', size: 'mini', childName, parentMarriage: m.role
+                    });
+                    rightIdx++;
+                    globalChildIdx++;
+                });
+            }
+        });
+
+        // ==========================================
+        // COLATERAIS (TIOS, IRMÃOS E OUTROS) - REORGANIZADO
+        // ==========================================
+        let currentY = 30.5; // Começa abaixo da árvore principal para evitar sobreposição
+
+        // Define os papéis fixos que NÃO devem ir para a lateral
+        const papeisFixos = [
+            'Eu mesmo', 'Pai', 'Mãe', 'Avô Paterno', 'Avó Paterna', 'Avô Materno', 'Avó Materna',
+            'Pai do Avô Paterno', 'Mãe do Avô Paterno', 'Pai da Avó Paterna', 'Mãe da Avó Paterna',
+            'Pai do Avô Materno', 'Mãe do Avô Materno', 'Pai da Avó Materna', 'Mãe da Avó Materna',
+            'Cônjuge', 'Cônjuge 2', 'Cônjuge 3', 'Cônjuge 4'
+        ];
+
+        // Pega TUDO que não for fixo para mostrar nas colunas laterais
+        const outroKeys = Object.keys(membersData)
+            .filter(k => !papeisFixos.includes(k) && membersData[k]?.nomeCompleto?.trim())
+            .sort();
+
+        // Botão Adicionar no topo
+        gridWithSpouse.push({
+            role: '__outro_parente', label: '+ PARENTE', x: COL_X, y: currentY,
+            w: LEFT_W, h: CARD_H, level: 1, type: 'outro_parente', size: 'mini',
+            rawX: COL_X, rawY: currentY
+        });
+        currentY += V_STEP;
+
+        outroKeys.forEach((roleKey) => {
+            const rel = membersData[roleKey]?.relationshipInfo?.parentesco || membersData[roleKey]?.parentesco || '';
+            gridWithSpouse.push({
+                role: roleKey,
+                label: rel ? rel.toUpperCase() : 'PARENTE',
+                x: COL_X, y: currentY, w: LEFT_W, h: CARD_H,
+                level: 1, type: 'outro_membro', size: 'mini',
+                rawX: COL_X, rawY: currentY
+            });
+            currentY += V_STEP;
+        });
+        // ==========================================
+
+        const toPct = (val, total) => (val / total) * 100;
+
+        return gridWithSpouse.map(btn => {
+            const isExpanded = expandedRole === btn.role;
+            const isHalfHeight = btn.h < 2.0 && btn.h >= 1.0;
+            const isQuarterHeight = btn.h < 1.0;
+
+            let finalWidth = toPct(btn.w, GRID_COLS) * SCALE_FACTOR;
+            let finalHeight = toPct(btn.h, GRID_ROWS) * SCALE_FACTOR;
+
+            if (isExpanded && btn.size === 'mini') {
+                finalWidth *= 1.4;
+            }
+
+            const xOffset = (finalWidth - toPct(btn.w, GRID_COLS)) / 2;
+            const yOffset = (finalHeight - toPct(btn.h, GRID_ROWS)) / 2;
+
+            return {
+                ...btn,
+                rawX: btn.x, // SALVA A COORDENADA MATEMÁTICA PARA O SVG
+                rawY: btn.y, // SALVA A COORDENADA MATEMÁTICA PARA O SVG
+                x: toPct(btn.x, GRID_COLS) - xOffset,
+                y: toPct(btn.y, GRID_ROWS) - yOffset,
+                w: finalWidth,
+                h: finalHeight,
+                isHalfHeight,
+                isQuarterHeight
+            };
+        });
+    }, [membersData, expandedRole]);
+
+    const renderConnections = () => {
+        const find = (r) => familyButtonsGrid.find(b => b.role === r);
+
+        const drawL = (childR, p1R, p2R) => {
+            const c = find(childR), p1 = find(p1R), p2 = find(p2R);
+            if (!c || !p1 || !p2) return null;
+            const px = (p1.x + p1.w / 2 + p2.x + p2.w / 2) / 2;
+            const py = Math.max(p1.y + p1.h, p2.y + p2.h);
+            const my = (c.y + py) / 2;
+            return <path key={`v-${childR}`} d={`M ${c.x + c.w / 2} ${c.y} L ${c.x + c.w / 2} ${my} L ${px} ${my} L ${px} ${py}`} opacity={expandedRole ? 0.2 : 1} className="transition-opacity duration-500" fill="none" stroke="#cbd5e1" strokeWidth="0.15" strokeLinejoin="round" />;
+        };
+
+        const drawBridge = (p1R, p2R) => {
+            const p1 = find(p1R), p2 = find(p2R);
+            if (!p1 || !p2) return null;
+            const y = Math.max(p1.y + p1.h, p2.y + p2.h);
+            return <line key={`b-${p1R}-${p2R}`} x1={p1.x + p1.w / 2} y1={y} x2={p2.x + p2.w / 2} y2={y} opacity={expandedRole ? 0.2 : 1} className="transition-opacity duration-500" stroke="#cbd5e1" strokeWidth="0.15" />;
+        };
+
+        return [
+            drawBridge('Pai', 'Mãe'),
+            drawBridge('Avó Paterna', 'Avô Paterno'),
+            drawBridge('Avó Materna', 'Avô Materno'),
+            drawBridge('Pai da Avó Paterna', 'Mãe da Avó Paterna'),
+            drawBridge('Pai do Avô Paterno', 'Mãe do Avô Paterno'),
+            drawBridge('Pai da Avó Materna', 'Mãe da Avó Materna'),
+            drawBridge('Pai do Avô Materno', 'Mãe do Avô Materno'),
+            drawL('Eu mesmo', 'Pai', 'Mãe'),
+            drawL('Pai', 'Avó Paterna', 'Avô Paterno'),
+            drawL('Mãe', 'Avó Materna', 'Avô Materno'),
+            drawL('Avó Paterna', 'Pai da Avó Paterna', 'Mãe da Avó Paterna'),
+            drawL('Avô Paterno', 'Pai do Avô Paterno', 'Mãe do Avô Paterno'),
+            drawL('Avó Materna', 'Pai da Avó Materna', 'Mãe da Avó Materna'),
+            drawL('Avô Materno', 'Pai do Avô Materno', 'Mãe do Avô Materno')
+        ];
+    };
+
+    // RESTAURADO: Esta é a função que desenha as conexões dos cônjuges e filhos
+    const renderChildrenConnections = () => {
+        const repData = membersData['Eu mesmo'] || {};
+        const isMarriedLocal = ['Casado', 'Divorciado', 'Viúvo', 'União Estável'].includes(repData.situacaoConjugal);
+
+        const CARD_H = 3.90;
+        const vStepLocal = 5.5; // Use consistency with V_STEP if needed but keep user logic
+        const START_Y = 24.5;
+        const RIGHT_X = 25.0;
+        const RIGHT_W = 5.84;
+        const REP_CX = 11.715 + 10.00 / 2; // Centro do card do Representante
+        const CX = RIGHT_X + RIGHT_W / 2; // Centro da coluna de cônjuges/filhos
+
+        const op = expandedRole ? 0.2 : 1;
+        const sc = '#cbd5e1';
+        const sw = 0.15;
+
+        const MARRIAGE_SCHEME = [
+            { suffix: '', role: 'Cônjuge', active: isMarriedLocal },
+            { suffix: '_2', role: 'Cônjuge 2', active: !!repData.remarried_1 },
+            { suffix: '_3', role: 'Cônjuge 3', active: !!repData.remarried_2 },
+            { suffix: '_4', role: 'Cônjuge 4', active: !!repData.remarried_3 }
+        ];
+
+        // Filtra apenas os casamentos que realmente existem
+        const activeMarriages = MARRIAGE_SCHEME.filter(m => m.active);
+        const N = activeMarriages.length;
+
+        if (N === 0) return null;
+
+        let rightIdx = 0;
+        const lines = [];
+
+        // Eixo Y principal que sai do Representante
+        const mainY = START_Y + CARD_H / 2;
+
+        // Distância horizontal total disponível e o tamanho de cada fragmento
+        const DIST = RIGHT_X - REP_CX;
+        const step = DIST / N;
+
+        // Linha Mestre Horizontal (Sai do Representante e vai até a coluna da direita)
+        lines.push(<line key="main-horizontal" x1={REP_CX} y1={mainY} x2={RIGHT_X} y2={mainY} stroke={sc} strokeWidth={sw} />);
+
+        activeMarriages.forEach((m, k) => {
+            const spouseY = START_Y + rightIdx * vStepLocal + CARD_H / 2;
+
+            // X do ponto de divisão matemática para este cônjuge
+            // k=0 (1º Cônjuge) ganha a ponta (RIGHT_X). Cônjuges seguintes vão ganhando as divisões à esquerda
+            const dropX = REP_CX + (N - k) * step;
+
+            if (k > 0) {
+                // Desce a linha vertical do ponto de divisão até a altura do Cônjuge
+                lines.push(<line key={`drop-v-${m.role}`} x1={dropX} y1={mainY} x2={dropX} y2={spouseY} stroke={sc} strokeWidth={sw} />);
+                // Liga a linha vertical horizontalmente ao card do Cônjuge
+                lines.push(<line key={`drop-h-${m.role}`} x1={dropX} y1={spouseY} x2={RIGHT_X} y2={spouseY} stroke={sc} strokeWidth={sw} />);
+            }
+
+            rightIdx++; // Avança o índice do grid após renderizar o cônjuge
+
+            // Puxa os filhos deste casamento específico
+            const marriageChildren = [];
+            const childrenText = repData[`children${m.suffix}`] || '';
+            if (childrenText) marriageChildren.push(...childrenText.split(',').map(c => c.trim()).filter(Boolean));
+            for (let i = 1; i <= 12; i++) {
+                const name = repData[`nomeFilho${i}${m.suffix}`];
+                if (name) marriageChildren.push(name.trim());
+            }
+
+            const uniqueKids = [...new Set(marriageChildren)];
+            if (uniqueKids.length > 0) {
+                const lastChildY = START_Y + (rightIdx + uniqueKids.length - 1) * vStepLocal + CARD_H / 2;
+
+                // "Espinha" vertical que desce do cônjuge até o último filho dele
+                lines.push(<line key={`stem-${m.role}`} x1={CX} y1={spouseY} x2={CX} y2={lastChildY} stroke={sc} strokeWidth={sw} />);
+
+                uniqueKids.forEach((_, cIdx) => {
+                    const childY = START_Y + rightIdx * vStepLocal + CARD_H / 2;
+                    // Conecta a "espinha" ao card do filho
+                    lines.push(<line key={`child-tick-main-${m.role}-${cIdx}`} x1={CX} y1={childY} x2={RIGHT_X} y2={childY} stroke={sc} strokeWidth={sw} />);
+                    rightIdx++;
+                });
+            }
+        });
+
+        return (
+            <g opacity={op} className="transition-opacity duration-500">
+                {lines}
+            </g>
+        );
+    };
+
+    const renderCollateralConnections = () => {
+        const sc = '#cbd5e1';
+        const sw = 0.15;
+        const op = expandedRole ? 0.2 : 1;
+        const lines = [];
+
+        const find = (r) => familyButtonsGrid.find(b => b.role === r);
+
+        const drawBranch = (parent1Role, parent2Role, keys, isRightSide) => {
+            const p1 = find(parent1Role);
+            const p2 = find(parent2Role);
+            if (!p1 || !p2 || keys.length === 0) return;
+
+            const unionX = (p1.x + p1.w / 2 + p2.x + p2.w / 2) / 2;
+            const unionY = Math.max(p1.y + p1.h, p2.y + p2.h);
+            const spineX = COL_X + LEFT_W + 1.0; // Espinha sempre à esquerda agora
+
+            const cards = keys.map(k => familyButtons.find(b => b.role === k)).filter(Boolean);
+            if (cards.length === 0) return;
+
+            // Usa rawY para a matemática do SVG funcionar na mesma escala
+            cards.sort((a, b) => a.rawY - b.rawY);
+            const lastY = cards[cards.length - 1].rawY + CARD_H / 2;
+
+            lines.push(<line key={`master-${keys[0]}`} x1={unionX} y1={unionY} x2={spineX} y2={unionY} stroke={sc} strokeWidth={sw} />);
+            lines.push(<line key={`spine-${keys[0]}`} x1={spineX} y1={unionY} x2={spineX} y2={lastY} stroke={sc} strokeWidth={sw} />);
+
+            cards.forEach((card, idx) => {
+                const cardY = card.rawY + CARD_H / 2; // Usa rawY!
+                const targetX = COL_X + LEFT_W;
+                lines.push(<line key={`tick-${card.role}-${idx}`} x1={spineX} y1={cardY} x2={targetX} y2={cardY} stroke={sc} strokeWidth={sw} />);
+            });
+        };
+
+        // Define os papéis fixos que NÃO devem ir para a lateral
+        const papeisFixos = [
+            'Eu mesmo', 'Pai', 'Mãe', 'Avô Paterno', 'Avó Paterna', 'Avô Materno', 'Avó Materna',
+            'Pai do Avô Paterno', 'Mãe do Avô Paterno', 'Pai da Avó Paterna', 'Mãe da Avó Paterna',
+            'Pai do Avô Materno', 'Mãe do Avô Materno', 'Pai da Avó Materna', 'Mãe do Avô Materno',
+            'Cônjuge', 'Cônjuge 2', 'Cônjuge 3', 'Cônjuge 4'
+        ];
+
+        // Pega TUDO que não for fixo para mostrar nas colunas laterais
+        const outroKeys = Object.keys(membersData)
+            .filter(k => !papeisFixos.includes(k) && membersData[k]?.nomeCompleto?.trim())
+            .sort();
+
+        // Busca ignorando case e acentos
+        const getRelStr = (k) => {
+            const rel = membersData[k]?.relationshipInfo?.parentesco || membersData[k]?.parentesco || '';
+            return rel.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        };
+
+        const tiosPaternos = outroKeys.filter(k => getRelStr(k).includes('tio') && getRelStr(k).includes('paterno'));
+        const tiosMaternos = outroKeys.filter(k => getRelStr(k).includes('tio') && getRelStr(k).includes('materno'));
+        const irmaos = outroKeys.filter(k => getRelStr(k).includes('irmao') || getRelStr(k).includes('irma'));
+
+        drawBranch('Avó Paterna', 'Avô Paterno', tiosPaternos, false);
+        drawBranch('Avó Materna', 'Avô Materno', tiosMaternos, false);
+        drawBranch('Pai', 'Mãe', irmaos, false);
+
+        return <g opacity={op} className="transition-opacity duration-500">{lines}</g>;
+    };
+
+    const getButtonStyle = (button) => {
+        const isSelected = value?.papel === button.role;
+        const isExpanded = expandedRole === button.role;
+        const shared = "absolute transition-all duration-500 rounded-lg border-2 font-bold flex flex-col items-center shadow-sm";
+        const overflowClass = isExpanded ? "" : "overflow-hidden";
+        const dimClass = expandedRole && !isExpanded ? "opacity-30 scale-90 grayscale-[0.5]" : "opacity-100";
+
+        if (isExpanded) {
+            return {
+                className: `${shared} ${overflowClass} z-[110] scale-125 shadow-2xl ring-4 ring-slate-400/20 bg-white border-stone-400 text-slate-800`,
+                style: {}
+            };
+        }
+
+        let theme = { from: '#FFFFFF', to: '#F8F9FA', border: '#E2E8F0', text: '#1E293B', ring: 'ring-slate-200' };
+
+        if (button.type === 'conjuge' || button.type === 'filho_individual') {
+            const role = button.type === 'conjuge' ? button.role : button.parentMarriage;
+            theme = { from: '#F4F7E6', to: '#FFFFFF', border: '#D8DEB6', text: '#5D6631', ring: 'ring-lime-100' };
+
+            if (role === 'Cônjuge') theme = { from: '#E8EDBE', to: '#F3F6D8', border: '#C9D680', text: '#3D4700', ring: 'ring-lime-300' };
+            else if (role === 'Cônjuge 2') theme = { from: '#EEF1D3', to: '#F8F9EA', border: '#D4DC9E', text: '#4A5412', ring: 'ring-lime-200' };
+            else if (role === 'Cônjuge 3') theme = { from: '#E1E8B0', to: '#F1F4D3', border: '#BCC68A', text: '#33691E', ring: 'ring-green-100' };
+            else if (role === 'Cônjuge 4') theme = { from: '#EFF1E0', to: '#F9FBF0', border: '#DCE0C1', text: '#2E331A', ring: 'ring-stone-200' };
+        } else if (button.type === 'outro_parente') {
+            return {
+                className: `${shared} ${overflowClass} ${dimClass} bg-white border-dashed border-[#00838F] text-[#006064] hover:bg-[#E0F7FA]`,
+                style: {}
+            };
+        } else {
+            switch (button.level) {
+                case 1: theme = { from: '#A5D6A7', to: '#C8E6C9', border: '#66BB6A', text: '#1B5E20', ring: 'ring-green-400' }; break;
+                case 2: theme = { from: '#C8E6C9', to: '#E8F5E9', border: '#A5D6A7', text: '#2E7D32', ring: 'ring-green-200' }; break;
+                case 3: theme = { from: '#B2DFDB', to: '#E0F2F1', border: '#80CBC4', text: '#00695C', ring: 'ring-teal-200' }; break;
+                default: theme = { from: '#B2EBF2', to: '#E0F7FA', border: '#80DEEA', text: '#006064', ring: 'ring-cyan-200' }; break;
+            }
+        }
+
+        return {
+            className: `${shared} ${overflowClass} ${dimClass} ${isSelected ? theme.ring + ' ring-4' : ''}`,
+            style: {
+                background: `linear-gradient(to bottom, ${theme.from}, ${theme.to})`,
+                borderColor: theme.border,
+                color: theme.text
+            }
+        };
+    };
+
+    return (
+        <div className="w-full flex flex-col font-primary select-none items-center">
+            {/* Scroll original restaurado */}
+            <div
+                className="relative w-full overflow-y-auto"
+                style={{
+                    height: '1000px',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#86efac #f0fdf4'
+                }}
+            >
+                <div
+                    className="relative left-0 right-0 w-full h-[1700px] transition-transform duration-500"
+                    ref={containerRef}
+                    onClick={() => setExpandedRole(null)}
+                >
+                    <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox={`0 0 ${GRID_COLS} ${GRID_ROWS}`} preserveAspectRatio="none">
+                        {renderConnections()}
+                        {/* Chamada para as conexões restauradas */}
+                        {renderChildrenConnections()}
+                        {renderCollateralConnections()}
+                    </svg>
+
+                    {familyButtons.map((btn) => {
+                        const isExpanded = expandedRole === btn.role;
+                        const btnStyles = getButtonStyle(btn);
+
+                        let firstName = '';
+                        let lastName = '';
+                        let birthYear = '';
+                        let deathYear = '';
+                        let marriageDate = '';
+
+                        const repData = membersData['Eu mesmo'] || {};
+                        if (btn.type === 'conjuge') {
+                            const role = btn.role;
+                            const spouseData = membersData[role] || {};
+                            let fullName = '';
+                            let mDate = '';
+
+                            if (role === 'Cônjuge') { fullName = spouseData.nomeCompleto || repData.nomeConjuge || ''; mDate = repData.dataCasamento || ''; }
+                            else if (role === 'Cônjuge 2') { fullName = spouseData.nomeCompleto || repData.spouseName_2 || ''; mDate = repData.marriageDate_2 || ''; }
+                            else if (role === 'Cônjuge 3') { fullName = spouseData.nomeCompleto || repData.spouseName_3 || ''; mDate = repData.marriageDate_3 || ''; }
+                            else if (role === 'Cônjuge 4') { fullName = spouseData.nomeCompleto || repData.spouseName_4 || ''; mDate = repData.marriageDate_4 || ''; }
+
+                            const nameParts = fullName.trim().split(/\s+/);
+                            firstName = nameParts[0] || '';
+                            lastName = nameParts.slice(1).join(' ') || '';
+                            birthYear = spouseData.dataNascimento ? (spouseData.dataNascimento.match(/\d{4}/)?.[0] || '') : '';
+                            deathYear = spouseData.dataFalecimento ? (spouseData.dataFalecimento.match(/\d{4}/)?.[0] || '') : '';
+                            marriageDate = mDate;
+                        } else {
+                            const fullName = membersData[btn.role]?.nomeCompleto || btn.childName || '';
+                            const nameParts = fullName.trim().split(/\s+/);
+                            firstName = nameParts[0] || '';
+                            lastName = nameParts.slice(1).join(' ') || '';
+                            birthYear = membersData[btn.role]?.dataNascimento ? (membersData[btn.role].dataNascimento.match(/\d{4}/)?.[0] || '') : '';
+                            deathYear = membersData[btn.role]?.dataFalecimento ? (membersData[btn.role].dataFalecimento.match(/\d{4}/)?.[0] || '') : '';
+                        }
+
+                        const progressPct = calculateProgress(membersData[btn.role]);
+
+                        return (
+                            <button
+                                key={btn.role}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (btn.type === 'outro_parente') {
+                                        setShowOutroModal(true);
+                                        return;
+                                    }
+                                    if (isExpanded) {
+                                        onNext?.();
+                                    } else {
+                                        setExpandedRole(btn.role);
+                                        let nome = membersData[btn.role]?.nomeCompleto || '';
+                                        let parentesco = membersData[btn.role]?.parentesco || '';
+
+                                        if (!nome || !parentesco) {
+                                            if (btn.type === 'filho_individual') {
+                                                nome = btn.childName;
+                                                let pName = '';
+                                                if (btn.parentMarriage === 'Cônjuge') pName = repData.nomeConjuge;
+                                                else if (btn.parentMarriage === 'Cônjuge 2') pName = repData.spouseName_2;
+                                                else if (btn.parentMarriage === 'Cônjuge 3') pName = repData.spouseName_3;
+                                                else if (btn.parentMarriage === 'Cônjuge 4') pName = repData.spouseName_4;
+                                                pName = pName || btn.parentMarriage || '';
+                                                parentesco = pName ? `Filho(a) de ${pName}` : 'Filho(a)';
+                                            } else if (btn.type === 'mae' && btn.role === 'Mãe') {
+                                                nome = repData.nomeMae || ''; parentesco = 'Mãe';
+                                            } else if (btn.type === 'conjuge') {
+                                                if (btn.role === 'Cônjuge') nome = repData.nomeConjuge;
+                                                else if (btn.role === 'Cônjuge 2') nome = repData.spouseName_2;
+                                                else if (btn.role === 'Cônjuge 3') nome = repData.spouseName_3;
+                                                else if (btn.role === 'Cônjuge 4') nome = repData.spouseName_4;
+                                                parentesco = 'Cônjuge';
+                                            }
+                                        }
+
+                                        onChange({ papel: btn.role, nome: nome || membersData[btn.role]?.nomeCompleto || '', parentesco: parentesco || membersData[btn.role]?.parentesco || '' });
+                                    }
+                                }}
+                                className={`${btnStyles.className} overflow-hidden`}
+                                style={{
+                                    left: `${btn.x}%`, top: `${btn.y}%`, width: `${btn.w}%`, height: `${btn.h}%`, zIndex: isExpanded ? 100 : 10, padding: '0', ...btnStyles.style
+                                }}
+                            >
+                                {/* Grid original do Card restaurado (Fotos e textos maiores) */}
+                                <div
+                                    style={{
+                                        gridTemplateColumns: 'repeat(16, 1fr)',
+                                        gridTemplateRows: btn.isQuarterHeight ? 'repeat(4, 1fr)' : (btn.isHalfHeight ? 'repeat(6, 1fr)' : 'repeat(11, 1fr)'),
+                                        lineHeight: '1.2'
+                                    }}
+                                    className="w-full h-full grid px-1 text-[8px] md:text-[11px]"
+                                >
+                                    <div className="col-start-1 col-span-16 row-start-1 flex items-center justify-center md:justify-start">
+                                        <span className="uppercase font-black tracking-tighter text-black/25 truncate text-[5px] md:text-[8px]">
+                                            {btn.label}
+                                        </span>
+                                    </div>
+
+                                    {!btn.isHalfHeight && !btn.isQuarterHeight && btn.type !== 'filhos' && btn.type !== 'outro_parente' && (
+                                        <>
+                                            <div className="row-start-2 row-span-4 col-start-5 col-span-8 md:row-start-2 md:row-span-9 md:col-start-1 md:col-span-6 flex items-center justify-center md:justify-start py-0.5">
+                                                <div className="h-full w-full max-w-[90%] bg-slate-50/50 rounded-sm border border-slate-300 overflow-hidden flex items-center justify-center">
+                                                    {membersData[btn.role]?.fotoIdentificacao?.[0]?.url || membersData[btn.role]?.fotoIdentificacao?.[0]?.preview ? (
+                                                        <img src={membersData[btn.role].fotoIdentificacao[0].url || membersData[btn.role].fotoIdentificacao[0].preview} className="w-full h-full object-cover" alt="" />
+                                                    ) : (
+                                                        <Users className="text-slate-300 w-3 h-3 md:w-5 md:h-5" />
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="col-start-1 col-span-16 row-start-6 row-span-2 md:col-start-7 md:col-span-10 md:row-start-2 md:row-span-2 flex items-center justify-center md:items-end md:justify-end font-black text-slate-900 truncate leading-none md:text-right md:pr-1">
+                                                <span className="truncate w-full text-center md:text-right text-[10px] md:text-[14px]">{firstName}</span>
+                                            </div>
+                                            <div className="col-start-1 col-span-16 row-start-8 md:col-start-7 md:col-span-10 md:row-start-4 flex items-center justify-center md:items-start md:justify-end font-bold text-slate-700 truncate leading-none md:text-right md:pr-1">
+                                                <span className="truncate w-full text-center md:text-right text-[8px] md:text-[12px]">{lastName}</span>
+                                            </div>
+                                            <div className="col-start-1 col-span-16 row-start-9 md:col-start-7 md:col-span-10 flex items-center justify-center gap-2 md:flex-col md:items-end md:gap-0 mt-0.5 md:mt-0">
+                                                {birthYear && (
+                                                    <div className="md:row-start-6 flex items-center gap-1 text-[7px] md:text-[11px] font-bold text-slate-500 whitespace-nowrap md:pr-1">
+                                                        {birthYear} <img src="/nascimento.png" className="w-[10px] h-[10px] md:w-[18px] md:h-[18px] opacity-70" alt="*" />
+                                                    </div>
+                                                )}
+                                                {deathYear && btn.type !== 'representante' && (
+                                                    <div className="md:row-start-8 flex items-center gap-1 text-[7px] md:text-[11px] font-bold text-slate-500 whitespace-nowrap md:pr-1">
+                                                        {deathYear} <img src="/falecimento.png" className="w-[10px] h-[10px] md:w-[18px] md:h-[18px] opacity-70" alt="+" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {btn.type === 'conjuge' && (
+                                        <div className="col-start-1 col-span-16 row-start-10 md:col-start-7 md:col-span-10 md:row-start-10 md:row-span-1 flex items-center justify-center md:justify-end gap-1 leading-none py-0 md:pr-1">
+                                            <span className="text-[5px] md:text-[8px] font-black text-rose-600/60 uppercase tracking-tighter">Casamento</span>
+                                            <span className="text-[7px] md:text-[11px] font-bold text-rose-700/90 tracking-tighter">{marriageDate || '----'}</span>
+                                        </div>
+                                    )}
+
+                                    {btn.type === 'outro_parente' && (
+                                        <div className="col-start-1 col-span-16 row-start-2 row-span-9 flex flex-col items-center justify-center gap-1">
+                                            <div className="w-7 h-7 md:w-10 md:h-10 rounded-full bg-emerald-50 border border-emerald-300 flex items-center justify-center">
+                                                <span className="text-emerald-500 text-[16px] md:text-[22px] font-black leading-none">+</span>
+                                            </div>
+                                            <span className="text-[6px] md:text-[10px] font-black text-emerald-600 uppercase tracking-tight text-center leading-[1.1]">
+                                                Adicionar<br />Parente
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {!isExpanded && !btn.isHalfHeight && membersData[btn.role] && btn.type !== 'outro_parente' && (
+                                    <div className="absolute bottom-1 left-1 right-1 h-[2.5px] rounded-full bg-black/10 overflow-hidden">
+                                        <div className="h-full bg-emerald-600 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
+                                    </div>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Modal: Outro Parente */}
+            {showOutroModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowOutroModal(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl border border-emerald-200 w-full max-w-[280px] overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="p-4 bg-emerald-50 border-b border-emerald-100">
+                            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">+ Adicionar</p>
+                            <p className="text-sm font-black text-emerald-900">Outro Parente</p>
+                        </div>
+                        <div className="p-3 flex flex-col gap-2 max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-emerald-200">
+                            {[
+                                { val: 'Filho(a)', papel: 'Filho_a' },
+                                { val: 'Irmão / Irmã', papel: 'Irmao_Irma' },
+                                { val: 'Tio(a) Paterno(a)', papel: 'Tio_Paterno' },
+                                { val: 'Tio(a) Materno(a)', papel: 'Tio_Materno' },
+                                { val: 'Primo(a) Paterno(a)', papel: 'Primo_Paterno' },
+                                { val: 'Primo(a) Materno(a)', papel: 'Primo_Materno' },
+                                { val: 'Sobrinho(a)', papel: 'Sobrinho_a' },
+                                { val: 'Não Identificado / Outro', papel: 'Nao_Identificado' }
+                            ].map((item) => (
+                                <button key={item.papel} type="button" onClick={() => {
+                                    const nextIndex = Object.keys(membersData).filter(k => k.startsWith('Outro ')).length + 1;
+                                    onChange({ papel: `Outro ${nextIndex}`, nome: '', parentesco: item.val });
+                                    setShowOutroModal(false);
+                                    onNext?.();
+                                }} className="w-full text-left px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-sm transition-colors">
+                                    {item.val}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="p-3 border-t border-slate-100">
+                            <button onClick={() => setShowOutroModal(false)} className="w-full py-2 text-xs font-bold text-slate-400 hover:text-slate-600">Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
