@@ -51,7 +51,64 @@ export const FamilyTreeSelector = ({
     const [expandedRole, setExpandedRole] = useState(null);
     const [systemNotifications, setSystemNotifications] = useState([]);
     const [attentionNeeded, setAttentionNeeded] = useState({ ids: new Set(), names: new Set() });
-    
+
+    // Modal de 2 etapas para criação de colaterais
+    const [showOutroModal, setShowOutroModal] = useState(false);
+    const [outroModalStep, setOutroModalStep] = useState(1);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [pendingClanAnchorId, setPendingClanAnchorId] = useState(null);
+
+    // Mini-modal focado para "adicionar ao clã de um Tio" específico
+    const [clanModal, setClanModal] = useState(null); // { headKey, headName, side, options }
+
+    // Etapa 3 — Âncora específica para o papel escolhido
+    const [anchorModalList, setAnchorModalList] = useState([]);
+    const [papelEscolhidoAtual, setPapelEscolhidoAtual] = useState('');
+
+    // Papéis que exigem a Etapa 3 (seleção de âncora)
+    const NEEDS_ANCHOR_STEP = {
+        'Conjuge do Irmao': { label: 'Cônjuge de qual irmão/ã?',  filterBy: ['Irmao','Irma','Irmão','Irmã'] },
+        'Sobrinho':         { label: 'Filho/a de qual irmão/ã?',  filterBy: ['Irmao','Irma','Irmão','Irmã'] },
+        'Sobrinha':         { label: 'Filho/a de qual irmão/ã?',  filterBy: ['Irmao','Irma','Irmão','Irmã'] },
+        'Genro':            { label: 'Casado/a com qual filho/a?', filterBy: ['Filho/a'] },
+        'Nora':             { label: 'Casada/o com qual filho/a?', filterBy: ['Filho/a'] },
+        'Neto':             { label: 'Neto/a de qual filho/a?',    filterBy: ['Filho/a'] },
+        'Neta':             { label: 'Neto/a de qual filho/a?',    filterBy: ['Filho/a'] },
+        'Enteado':          { label: 'Filho/a de qual cônjuge?',   filterBy: ['Cônjuge','Cônjuge 2','Cônjuge 3','Cônjuge 4'] },
+        'Enteada':          { label: 'Filho/a de qual cônjuge?',   filterBy: ['Cônjuge','Cônjuge 2','Cônjuge 3','Cônjuge 4'] },
+    };
+
+    // Função unificada de confirmação (usada nas Etapas 2 e 3)
+    const confirmarEscolha = (papel, anchorId) => {
+        console.log('[ETAPA 3] confirmarEscolha chamado:', {
+            papel,
+            anchorId,
+            newUUID: 'será gerado'
+        });
+        const newUUID = generateCollateralId();
+        console.log('[ETAPA 3] payload onChange:', {
+            papel,
+            parentesco: papel,
+            nome: '',
+            vinculoFamiliarId: anchorId || pendingClanAnchorId || '',
+            _newDocId: newUUID
+        });
+        onChange({
+            papel,
+            parentesco: papel,
+            nome: '',
+            vinculoFamiliarId: anchorId || pendingClanAnchorId || '',
+            _newDocId: newUUID
+        });
+        onNext(newUUID);
+        setShowOutroModal(false);
+        setOutroModalStep(1);
+        setSelectedCategory(null);
+        setPendingClanAnchorId(null);
+        setAnchorModalList([]);
+        setPapelEscolhidoAtual('');
+    };
+
     // Novas Abas Laterais
     const [showDuplicateDrawer, setShowDuplicateDrawer] = useState(false);
     const [showIncompleteDrawer, setShowIncompleteDrawer] = useState(false);
@@ -62,6 +119,18 @@ export const FamilyTreeSelector = ({
     const [mergeLoading, setMergeLoading] = useState(false); // homologation
     const [mergeToast,   setMergeToast]   = useState(null);  // { msg, color }
 
+    // NFC normalization — garante que chaves com acentos (ex: 'Pai da Avó Materna') batem com docIds do Firestore
+    const normalizedMembersData = useMemo(() => {
+        if (!membersData) return {};
+        return Object.fromEntries(
+            Object.entries(membersData).map(([key, value]) => [
+                key.normalize('NFC'),
+                value
+            ])
+        );
+    }, [membersData]);
+
+
     useEffect(() => {
         if (!membersData) return;
 
@@ -71,7 +140,7 @@ export const FamilyTreeSelector = ({
         
         const membersList = [];
         Object.keys(membersData).forEach(key => {
-            const member = membersData[key];
+            const member = normalizedMembersData[key];
             if (!member) return;
 
             // Identifica se há registros no formato antigo (sem ID único)
@@ -91,12 +160,12 @@ export const FamilyTreeSelector = ({
             if (matches.length > 0) {
                 const hasD = matches.some(o => o.bDate === m.bDate);
                 const hasH = matches.some(o => o.bDate !== m.bDate);
-                const isAccepted = membersData[m.key]?.duplicateAccepted || matches.some(o => membersData[o.key]?.duplicateAccepted) || acceptedDuplicates.has(m.baseName);
+                const isAccepted = normalizedMembersData[m.key]?.duplicateAccepted || matches.some(o => normalizedMembersData[o.key]?.duplicateAccepted) || acceptedDuplicates.has(m.baseName);
                 
                 memberTagsMap[m.key] = { isD: hasD && !isAccepted, isH: hasH && !isAccepted };
                 
                 if (!isAccepted) {
-                    duplicates.push({ key: m.key, member: membersData[m.key], isD: hasD, isH: hasH, baseName: m.baseName });
+                    duplicates.push({ key: m.key, member: normalizedMembersData[m.key], isD: hasD, isH: hasH, baseName: m.baseName });
                 }
             }
         });
@@ -130,7 +199,7 @@ export const FamilyTreeSelector = ({
 
         const incompleteMembers = [];
         Object.keys(membersData).forEach(key => {
-            const m = membersData[key];
+            const m = normalizedMembersData[key];
             if (!m) return;
             if (!m.nomeCompleto || !m.dataNascimento) {
                 incompleteMembers.push({ key, member: m });
@@ -214,7 +283,7 @@ export const FamilyTreeSelector = ({
 
     const familyButtons = useMemo(() => {
         const gridWithSpouse = [...familyButtonsGrid];
-        const repData = membersData['Eu mesmo'] || {};
+        const repData = normalizedMembersData['Eu mesmo'] || {};
         const isMarried = ['Casado', 'Divorciado', 'Viúvo', 'União Estável'].includes(repData.situacaoConjugal);
 
         const MARRIAGE_LEVELS = [
@@ -246,7 +315,7 @@ export const FamilyTreeSelector = ({
                 [...new Set(marriageChildren)].forEach((childName) => {
                     // Verificação para evitar duplicados no Grid SVG
                     const realMemberKey = Object.keys(membersData).find(k => {
-                        const m = membersData[k];
+                        const m = normalizedMembersData[k];
                         const p = (m?.relationshipInfo?.parentesco || m?.parentesco || '').toLowerCase();
                         return (p.includes('filho') || p.includes('filha')) &&
                             (m.nomeCompleto?.trim() === childName.trim());
@@ -274,7 +343,7 @@ export const FamilyTreeSelector = ({
 
         return gridWithSpouse.map(btn => {
             if (btn.role === 'Eu mesmo') {
-                const m = membersData['Eu mesmo'] || {};
+                const m = normalizedMembersData['Eu mesmo'] || {};
                 return {
                     ...btn,
                     nome: m.nomeCompleto || m.fullName || representativeName || 'Eu mesmo',
@@ -427,7 +496,7 @@ export const FamilyTreeSelector = ({
             colFamiliaMaterna: [],   // clan groups: tios/primos do lado materno
             colConjugeFilhos:  []    // union groups (inalterado)
         };
-        const repData = membersData['Eu mesmo'] || {};
+        const repData = normalizedMembersData['Eu mesmo'] || {};
         const seenIds = new Set();
         const seenNames = new Set();
         const clanNameRouteMap = {}; // Mapa para roteamento por nome (Tio -> Sobrinho/Cônjuge)
@@ -443,7 +512,7 @@ export const FamilyTreeSelector = ({
         ];
 
         papeisFixosTronco.forEach(role => {
-            const m = membersData[role];
+            const m = normalizedMembersData[role];
             if (m?.id) seenIds.add(m.id);
             const name = getBaseName(m?.nomeCompleto);
             if (name) seenNames.add(name);
@@ -478,7 +547,7 @@ export const FamilyTreeSelector = ({
             
             // NOVO: Cabeça de clã depende do modo (Tios ou Irmãos)
             const isClanHead   = (p) => {
-                if (mode === 'siblings') return /(irmao|irma)/i.test(norm(p)) && !/(primo|tio|tia)/i.test(norm(p));
+                if (mode === 'siblings') return /(irm[aã]o|irm[aã]$|irmao|irma)/i.test(norm(p)) && !/(primo|tio|tia)/i.test(norm(p));
                 return isTioRole(p) || isTioAvoRole(p);
             };
 
@@ -660,7 +729,7 @@ export const FamilyTreeSelector = ({
         const clanHeadRolesMap = {};   // headId → role string
 
         Object.keys(membersData).forEach(key => {
-            const m = membersData[key];
+            const m = normalizedMembersData[key];
             if (!m?.nomeCompleto?.trim()) return;
             const rawP = m?.relationshipInfo?.parentesco || m?.parentesco || '';
             const normP = normStr(rawP);
@@ -692,7 +761,7 @@ export const FamilyTreeSelector = ({
         // Segundo passe para herdar sides de ClanHeads vinculados (ex: Piedade ligada a Jacob)
         Object.keys(clanHeadRolesMap).forEach(headId => {
             if (clanHeadSideMap[headId]) return;
-            const m = membersData[headId] || Object.values(membersData).find(x => x.id === headId || x.docId === headId);
+            const m = normalizedMembersData[headId] || Object.values(membersData).find(x => x.id === headId || x.docId === headId);
             const vinculoId = m?.vinculoFamiliarId || m?.linkedToAnchorId;
             if (vinculoId && clanHeadSideMap[vinculoId]) {
                 clanHeadSideMap[headId] = clanHeadSideMap[vinculoId];
@@ -703,7 +772,7 @@ export const FamilyTreeSelector = ({
         // PASSE 1: Membros reais Não-União
         // ─────────────────────────────────────────────────────────────────────
         const realOtherKeys = Object.keys(membersData)
-            .filter(k => !papeisFixosTronco.includes(k) && membersData[k]?.nomeCompleto?.trim());
+            .filter(k => !papeisFixosTronco.includes(k) && normalizedMembersData[k]?.nomeCompleto?.trim());
 
         const unionRelatedKeySet = new Set();
         const tempPaterno  = [];   // membros do lado paterno → buildClanGroups
@@ -712,7 +781,7 @@ export const FamilyTreeSelector = ({
         const tempFallback = [];   // legado/genérico → col 1 com alerta
 
         realOtherKeys.forEach(key => {
-            const member = membersData[key];
+            const member = normalizedMembersData[key];
             const raw = member?.relationshipInfo?.parentesco || member?.parentesco || '';
             const parentesco = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 
@@ -778,7 +847,7 @@ export const FamilyTreeSelector = ({
             const isMadrasta = /^madrasta$/i.test(raw.trim());
             const isMaterno  = /\(materno\)/i.test(raw);
             const isPadrasto = /^padrasto$/i.test(raw.trim());
-            const isSibling  = /(irmao|irma)/i.test(parentesco) && !/(primo|tio|tia)/i.test(parentesco);
+            const isSibling  = /(irm[aã]o|irm[aã]$|irmao|irma)/i.test(parentesco) && !/(primo|tio|tia)/i.test(parentesco);
             const isSobrinho = /sobrinho/i.test(parentesco) && !isPaterno && !isMaterno;
 
             // BUGFIX DAVID: Se o membro não tem parentesco definido (legado) MAS está vinculado a um Tio, 
@@ -828,14 +897,14 @@ export const FamilyTreeSelector = ({
 
         MARRIAGE_LEVELS.forEach(m => {
             const isActive =
-                membersData[m.role] ||
+                normalizedMembersData[m.role] ||
                 (m.role === 'Cônjuge' && ['Casado', 'Divorciado', 'Viúvo', 'União Estável'].includes(repData.situacaoConjugal)) ||
                 repData[`remarried_${m.suffix.replace('_', '')}`];
 
             if (!isActive) return;
 
             // Cônjuge: real (Firestore) ou virtual (campo do rep)
-            const realSpouse  = membersData[m.role];
+            const realSpouse  = normalizedMembersData[m.role];
             const spouseName  = realSpouse?.nomeCompleto || repData[m.nameField] || '';
             const spouseMember = realSpouse
                 ? { ...realSpouse, _forceType: 'conjuge', _parentMarriage: m.role }
@@ -867,12 +936,12 @@ export const FamilyTreeSelector = ({
 
                 // Tenta encontrar membro real com esse nome
                 const realChildKey = [...unionRelatedKeySet].find(k => {
-                    const cm = membersData[k];
+                    const cm = normalizedMembersData[k];
                     return cm && getBaseName(cm.nomeCompleto) === cBase && !seenIds.has(cm.id || k);
                 });
 
                 if (realChildKey) {
-                    const cm = membersData[realChildKey];
+                    const cm = normalizedMembersData[realChildKey];
                     seenIds.add(cm.id || realChildKey);
                     seenNames.add(cBase);
                     childNamesInGroup.add(cBase);
@@ -912,7 +981,7 @@ export const FamilyTreeSelector = ({
         // ─────────────────────────────────────────────────────────────────────
         const orphans = [];
         unionRelatedKeySet.forEach(key => {
-            const member = membersData[key];
+            const member = normalizedMembersData[key];
             if (!member) return;
             const memberId = member.id || key;
             if (seenIds.has(memberId)) return;
@@ -1109,13 +1178,13 @@ export const FamilyTreeSelector = ({
         const isExpanded = expandedRole === btn.role;
         const btnStyles = getButtonStyle(btn);
 
-        const mData = membersData[btn.role] || {};
+        const mData = normalizedMembersData[btn.role] || {};
         const tags = attentionNeeded[btn.role] || {};
         const isD = tags.isD;
         const isH = tags.isH;
         const needsAttention = isD || isH;
 
-        const repData = membersData['Eu mesmo'] || {};
+        const repData = normalizedMembersData['Eu mesmo'] || {};
         let firstName = '';
         let lastName = '';
         let birthYear = '';
@@ -1126,7 +1195,7 @@ export const FamilyTreeSelector = ({
 
         if (btn.type === 'conjuge') {
             const role = btn.role;
-            const spouseData = membersData[role] || {};
+            const spouseData = normalizedMembersData[role] || {};
             let mDate = '';
 
             if (!fullName) {
@@ -1147,7 +1216,7 @@ export const FamilyTreeSelector = ({
             marriageDate = mDate || spouseData.dataCasamento || '';
         } else {
             if (!fullName) {
-                const m = membersData[btn.role] || {};
+                const m = normalizedMembersData[btn.role] || {};
                 fullName = m.nomeCompleto || m.fullName || btn.childName || '';
 
                 if (!fullName) {
@@ -1159,14 +1228,14 @@ export const FamilyTreeSelector = ({
             const nameParts = fullName.trim().split(/\s+/);
             firstName = nameParts[0] || '';
             lastName = nameParts.slice(1).join(' ') || '';
-            const bVal = (membersData[btn.role]?.dataNascimento || membersData[btn.role]?.birthDate || '');
+            const bVal = (normalizedMembersData[btn.role]?.dataNascimento || normalizedMembersData[btn.role]?.birthDate || '');
             birthYear = (bVal === '[NÃO SEI]' || bVal.startsWith('ID_DESCONHECIDO_')) ? 'Ignorada' : (bVal.match(/\d{4}/)?.[0] || '');
 
-            const dVal = (membersData[btn.role]?.dataFalecimento || membersData[btn.role]?.deathDate || '');
+            const dVal = (normalizedMembersData[btn.role]?.dataFalecimento || normalizedMembersData[btn.role]?.deathDate || '');
             deathYear = (dVal === '[NÃO SEI]' || dVal.startsWith('ID_DESCONHECIDO_')) ? 'Ignorada' : (dVal.match(/\d{4}/)?.[0] || '');
         }
 
-        const progressPct = calculateProgress(membersData[btn.role]);
+        const progressPct = calculateProgress(normalizedMembersData[btn.role]);
         const is3x4 = btn.type === 'representante' || btn.role === 'Pai' || btn.role === 'Mãe';
 
         const positionStyles = customStyles.relative ? {
@@ -1193,8 +1262,8 @@ export const FamilyTreeSelector = ({
                         onNext?.();
                     } else {
                         setExpandedRole(btn.role);
-                        let nome = membersData[btn.role]?.nomeCompleto || '';
-                        let parentesco = membersData[btn.role]?.parentesco || '';
+                        let nome = normalizedMembersData[btn.role]?.nomeCompleto || '';
+                        let parentesco = normalizedMembersData[btn.role]?.parentesco || '';
 
                         if (!nome || !parentesco) {
                             if (btn.type === 'filho_individual') {
@@ -1217,7 +1286,7 @@ export const FamilyTreeSelector = ({
                             }
                         }
 
-                        onChange({ papel: btn.role, nome: nome || membersData[btn.role]?.nomeCompleto || '', parentesco: parentesco || membersData[btn.role]?.parentesco || '' });
+                        onChange({ papel: btn.role, nome: nome || normalizedMembersData[btn.role]?.nomeCompleto || '', parentesco: parentesco || normalizedMembersData[btn.role]?.parentesco || '' });
                     }
                 }}
                 className={`${btnStyles.className} overflow-hidden cursor-pointer ${customStyles.className || ''}`}
@@ -1263,7 +1332,7 @@ export const FamilyTreeSelector = ({
                             <div className="row-start-2 row-span-4 col-start-5 col-span-8 md:row-start-2 md:row-span-11 md:col-start-1 md:col-span-6 flex items-center justify-center md:justify-start py-0.5">
                                 <div className={`h-full ${is3x4 ? 'aspect-[3/4] w-auto' : 'w-full max-w-[90%]'} bg-slate-50/50 rounded-sm border border-slate-300 overflow-hidden flex items-center justify-center`}>
                                     {(() => {
-                                        const mData = membersData[btn.role] || {};
+                                        const mData = normalizedMembersData[btn.role] || {};
                                         const photoObj = mData.fotoIdentificacao?.[0];
                                         const photoUrl = (photoObj?.url || photoObj?.preview || mData.photoMain || '').trim();
                                         
@@ -1322,7 +1391,7 @@ export const FamilyTreeSelector = ({
                         </div>
                     )}
                 </div>
-                {!isExpanded && !btn.isHalfHeight && membersData[btn.role] && btn.type !== 'outro_parente' && (
+                {!isExpanded && !btn.isHalfHeight && normalizedMembersData[btn.role] && btn.type !== 'outro_parente' && (
                     <div className="absolute bottom-1 left-1 right-1 h-[2.5px] rounded-full bg-black/10 overflow-hidden">
                         <div className="h-full bg-emerald-600 rounded-full transition-all duration-500" style={{ width: `${progressPct}%` }} />
                     </div>
@@ -1455,21 +1524,63 @@ export const FamilyTreeSelector = ({
                                             e.stopPropagation();
                                             const normalizeT = (s) => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
                                             const gt = normalizeT(group.title);
-                                            
-                                            let defaultRole = 'Outro';
-                                            if (gt === 'familia paterna') defaultRole = 'Tio/a (Paterno)';
-                                            else if (gt === 'familia materna') defaultRole = 'Tio/a (Materno)';
-                                            else if (gt.includes('irmaos')) defaultRole = 'Irmão/ã';
-                                            else if (gt.includes('unioes')) defaultRole = 'Filho/a';
 
-                                            const newUUID = generateCollateralId();
-                                            onChange({
-                                                papel: defaultRole,
-                                                parentesco: defaultRole,
-                                                nome: '',
-                                                _newDocId: newUUID
-                                            });
-                                            onNext(newUUID);
+                                            // Abre o modal na etapa correta conforme a coluna clicada
+                                            if (gt === 'familia paterna') {
+                                                setSelectedCategory({
+                                                    label: 'Família Paterna',
+                                                    options: [
+                                                        'Tio/a (Paterno)', 'Tio-Avô (Paterno)',
+                                                        'Primo/a (Paterno)', 'Primo (2º grau, Paterno)',
+                                                        'Primo (3º grau, Paterno)', 'Sobrinho/a (Paterno)',
+                                                        'Cônjuge do Tio (Paterno)', 'Sobrinho-neto(a) (Paterno)'
+                                                    ]
+                                                });
+                                                setOutroModalStep(2);
+                                            } else if (gt === 'familia materna') {
+                                                setSelectedCategory({
+                                                    label: 'Família Materna',
+                                                    options: [
+                                                        'Tio/a (Materno)', 'Tio-Avô (Materno)',
+                                                        'Primo/a (Materno)', 'Primo (2º grau, Materno)',
+                                                        'Primo (3º grau, Materno)', 'Sobrinho/a (Materno)',
+                                                        'Cônjuge do Tio (Materno)', 'Sobrinho-neto(a) (Materno)'
+                                                    ]
+                                                });
+                                                setOutroModalStep(2);
+                                            } else if (gt.includes('irmaos') || gt.includes('irmaos e sobrinhos') || gt.includes('irmaos &')) {
+                                                // Irmãos & Sobrinhos → direto na Etapa 2 com opções específicas
+                                                setSelectedCategory({
+                                                    label: 'Irmãos & Sobrinhos',
+                                                    options: [
+                                                        { label: 'Irmão',            valor: 'Irmao'           },
+                                                        { label: 'Irmã',             valor: 'Irma'            },
+                                                        { label: 'Cônjuge do Irmão', valor: 'Conjuge do Irmao'},
+                                                        { label: 'Sobrinho/a',       valor: 'Sobrinho'        }
+                                                    ]
+                                                });
+                                                setOutroModalStep(2);
+                                            } else if (gt.includes('unio') || gt.includes('filhos')) {
+                                                // Uniões & Filhos → direto na Etapa 2 com opções específicas
+                                                setSelectedCategory({
+                                                    label: 'Uniões & Filhos',
+                                                    options: [
+                                                        { label: 'Filho/a',   valor: 'Filho/a'  },
+                                                        { label: 'Neto/a',    valor: 'Neto/a'   },
+                                                        { label: 'Enteado/a', valor: 'Enteado/a'},
+                                                        { label: 'Genro',     valor: 'Genro'    },
+                                                        { label: 'Nora',      valor: 'Nora'     },
+                                                        { label: 'Cônjuge',   valor: 'Conjuge'  }
+                                                    ]
+                                                });
+                                                setOutroModalStep(2);
+                                            } else {
+                                                // fallback: etapa 1 geral
+                                                setSelectedCategory(null);
+                                                setOutroModalStep(1);
+                                            }
+                                            setPendingClanAnchorId(null);
+                                            setShowOutroModal(true);
                                         }}
                                         className="w-full flex justify-center items-center gap-1.5 mb-1 md:mb-4 border border-slate-200 rounded-lg py-1.5 px-2 bg-white/70 hover:bg-slate-50 hover:border-history-green/40 hover:shadow-sm transition-all active:scale-[0.98] group pointer-events-auto"
                                     >
@@ -1527,16 +1638,31 @@ export const FamilyTreeSelector = ({
                                                                             type="button"
                                                                             title="Adicionar familiar a este clã"
                                                                             onClick={(e) => {
-                                                                                e.stopPropagation();
-                                                                                const newUUID = generateCollateralId();
-                                                                                onChange({
-                                                                                    papel: 'Outro',
-                                                                                    parentesco: 'Outro',
-                                                                                    nome: '',
-                                                                                    vinculoFamiliarId: item.members[0].key,
-                                                                                    _newDocId: newUUID
+                                                                             e.stopPropagation();
+                                                                                // Mini-modal focado: só mostra opções relevantes ao clã
+                                                                                const headKey = item.members[0].key;
+                                                                                const headMember = item.members[0].member || {};
+                                                                                const headName = (headMember.nomeCompleto || '').split(' ')[0] || 'Tio';
+                                                                                const rawP = headMember?.relationshipInfo?.parentesco || headMember?.parentesco || '';
+                                                                                const isClanPaterno = /\(paterno\)/i.test(rawP);
+                                                                                const ladoSufixo = isClanPaterno ? '(Paterno)' : '(Materno)';
+                                                                                const primoLabel = isClanPaterno ? 'Primo/a (Paterno)' : 'Primo/a (Materno)';
+                                                                                setClanModal({
+                                                                                    headKey,
+                                                                                    headName,
+                                                                                    options: [
+                                                                                        {
+                                                                                            label: `Cônjuge de ${headName}`,
+                                                                                            papel: 'Cônjuge do Tio',
+                                                                                            parentesco: `Cônjuge do Tio ${ladoSufixo}`
+                                                                                        },
+                                                                                        {
+                                                                                            label: `Filho/a de ${headName}`,
+                                                                                            papel: primoLabel,
+                                                                                            parentesco: primoLabel
+                                                                                        }
+                                                                                    ]
                                                                                 });
-                                                                                onNext(newUUID);
                                                                             }}
                                                                             className="ml-1 w-3 h-3 md:w-4 md:h-4 rounded bg-white hover:bg-slate-200 border border-transparent shadow-sm flex items-center justify-center transition-colors pointer-events-auto"
                                                                         >
@@ -1620,7 +1746,298 @@ export const FamilyTreeSelector = ({
                     </div>
                 </div>
             </div>
-            {/* Modal de Categoria removido para fluxo direto */}
+            {/* ====== MODAL DE 2 ETAPAS — Criação de Colaterais ====== */}
+            {showOutroModal && (
+                <div
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4"
+                    onClick={() => {
+                        setShowOutroModal(false);
+                        setOutroModalStep(1);
+                        setSelectedCategory(null);
+                        setPendingClanAnchorId(null);
+                    }}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Header do modal */}
+                        <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <div>
+                                <h3 className="text-lg font-serif font-black text-history-green uppercase tracking-wider">
+                                    {pendingClanAnchorId
+                                        ? `Família de ${(normalizedMembersData[pendingClanAnchorId]?.nomeCompleto || '').split(' ')[0] || 'Tio'}`
+                                        : 'Adicionar Parente'}
+                                </h3>
+                                {outroModalStep === 2 && selectedCategory && (
+                                    <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                                        Categoria: {selectedCategory.label}
+                                    </span>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowOutroModal(false);
+                                    setOutroModalStep(1);
+                                    setSelectedCategory(null);
+                                    setPendingClanAnchorId(null);
+                                }}
+                                className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+                            >
+                                <X size={20} className="text-slate-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 max-h-[60vh] overflow-y-auto">
+                            {outroModalStep === 1 ? (
+                                // ── ETAPA 1 — Categorias ──────────────────────────────────
+                                <div className="grid grid-cols-1 gap-3">
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Selecione uma categoria:</p>
+                                    {[
+                                        {
+                                            label: 'Ancestrais',
+                                            options: [
+                                                'Bisavô/ó', 'Trisavô/ó', 'Tataravô/ó',
+                                                'Quarto-avô/ó', 'Quinto-avô/ó', 'Sextavô/ó',
+                                                'Tio-avô/ó', 'Tio-bisavô/ó', 'Padrasto', 'Madrasta'
+                                            ]
+                                        },
+                                        {
+                                            label: 'Irmãos',
+                                            // Opções com {label, valor}: label=display, valor=payload sem acento
+                                            options: [
+                                                { label: 'Irmão',       valor: 'Irmao'       },
+                                                { label: 'Irmã',        valor: 'Irma'        },
+                                                { label: 'Irmão (Pai)', valor: 'Irmao (Pai)' },
+                                                { label: 'Irmã (Pai)',  valor: 'Irma (Pai)'  },
+                                                { label: 'Irmão (Mãe)', valor: 'Irmao (Mae)' },
+                                                { label: 'Irmã (Mãe)',  valor: 'Irma (Mae)'  }
+                                            ]
+                                        },
+                                        {
+                                            label: 'Família Paterna',
+                                            options: [
+                                                'Tio/a (Paterno)', 'Tio-Avô (Paterno)',
+                                                'Primo/a (Paterno)', 'Primo (2º grau, Paterno)',
+                                                'Primo (3º grau, Paterno)', 'Sobrinho/a (Paterno)',
+                                                'Cônjuge do Tio (Paterno)', 'Sobrinho-neto(a) (Paterno)'
+                                            ]
+                                        },
+                                        {
+                                            label: 'Família Materna',
+                                            options: [
+                                                'Tio/a (Materno)', 'Tio-Avô (Materno)',
+                                                'Primo/a (Materno)', 'Primo (2º grau, Materno)',
+                                                'Primo (3º grau, Materno)', 'Sobrinho/a (Materno)',
+                                                'Cônjuge do Tio (Materno)', 'Sobrinho-neto(a) (Materno)'
+                                            ]
+                                        },
+                                        {
+                                            label: 'Uniões & Filhos',
+                                            options: [
+                                                { label: 'Filho/a',   valor: 'Filho/a'  },
+                                                { label: 'Neto/a',    valor: 'Neto/a'   },
+                                                { label: 'Enteado/a', valor: 'Enteado/a'},
+                                                { label: 'Genro',     valor: 'Genro'    },
+                                                { label: 'Nora',      valor: 'Nora'     },
+                                                { label: 'Cônjuge',   valor: 'Conjuge'  }
+                                            ]
+                                        }
+                                    ].map((cat) => (
+                                        <button
+                                            key={cat.label}
+                                            onClick={() => {
+                                                setSelectedCategory(cat);
+                                                setOutroModalStep(2);
+                                            }}
+                                            className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-slate-100 hover:border-slate-300 hover:bg-slate-50 transition-all group"
+                                        >
+                                            <span className="font-bold text-slate-700 uppercase tracking-wide text-sm">{cat.label}</span>
+                                            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition-colors">
+                                                <Plus size={16} className="text-slate-400 group-hover:text-slate-600" />
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                // ── ETAPA 2 — Papéis específicos ──────────────────────────
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setShowOutroModal(false);
+                                            setOutroModalStep(1);
+                                            setSelectedCategory(null);
+                                            setPendingClanAnchorId(null);
+                                        }}
+                                        className="col-span-2 text-[10px] font-bold text-slate-400 hover:text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-1"
+                                    >
+                                        ← Fechar
+                                    </button>
+                                    {selectedCategory?.options.map((opt) => {
+                                        // opt pode ser string (outros) ou {label, valor} (Irmãos)
+                                        const displayLabel = typeof opt === 'object' ? opt.label : opt;
+                                        const payloadValor = typeof opt === 'object' ? opt.valor : opt;
+                                        return (
+                                            <button
+                                                key={payloadValor}
+                                                onClick={() => {
+                                                    setPapelEscolhidoAtual(payloadValor);
+                                                    const needsAnchor = NEEDS_ANCHOR_STEP[payloadValor];
+                                                    if (needsAnchor) {
+                                                        const available = Object.values(membersData || {})
+                                                            .filter(m => {
+                                                                const p = m.parentesco || m.relationshipInfo?.papel || '';
+                                                                return needsAnchor.filterBy.some(f =>
+                                                                    p.toLowerCase().includes(f.toLowerCase())
+                                                                );
+                                                            })
+                                                            .filter(m => m.nomeCompleto || m.name);
+                                                        setAnchorModalList(available);
+                                                        setOutroModalStep(3);
+                                                        return;
+                                                    }
+                                                    confirmarEscolha(payloadValor, pendingClanAnchorId || '');
+                                                }}
+                                                className="p-3 text-xs font-bold text-slate-600 bg-slate-50 border border-slate-100 rounded-lg hover:border-slate-400 hover:bg-slate-100 hover:text-slate-800 transition-all text-center uppercase tracking-tight"
+                                            >
+                                                {displayLabel}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ====== ETAPA 3 — Seleção de âncora específica ====== */}
+            {showOutroModal && outroModalStep === 3 && (
+                <div
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[205] p-4"
+                    onClick={() => setShowOutroModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="p-5 border-b border-slate-100 bg-slate-50/50">
+                            <h3 className="text-lg font-serif font-black text-history-green uppercase tracking-wider">
+                                {NEEDS_ANCHOR_STEP[papelEscolhidoAtual]?.label || 'Selecione o familiar'}
+                            </h3>
+                            <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
+                                {papelEscolhidoAtual}
+                            </span>
+                        </div>
+                        <div className="p-5">
+                            {anchorModalList.length > 0 ? (
+                                <>
+                                    <div className="flex flex-col gap-2 max-h-60 overflow-y-auto mb-4 pr-1">
+                                        {anchorModalList.map(m => {
+                                            const mId = m.docId || m.id || m.key;
+                                            const mName = m.nomeCompleto || m.name || '?';
+                                            const mRel = m.parentesco || m.relationshipInfo?.papel || '';
+                                            return (
+                                                <button
+                                                    key={mId}
+                                                    onClick={() => confirmarEscolha(papelEscolhidoAtual, mId)}
+                                                    className="w-full text-left px-4 py-3 rounded-xl border-2 border-slate-100 hover:border-history-green/40 hover:bg-slate-50 transition-all group"
+                                                >
+                                                    <span className="font-bold text-slate-800 text-sm block">{mName}</span>
+                                                    <span className="text-xs text-slate-400">{mRel}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <button
+                                        onClick={() => confirmarEscolha(papelEscolhidoAtual, '')}
+                                        className="w-full py-2 text-sm text-slate-500 hover:text-slate-700 border border-dashed border-slate-200 rounded-lg transition-colors"
+                                    >
+                                        Continuar sem vincular por agora →
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="text-center py-6">
+                                    <p className="text-slate-500 text-sm mb-2">
+                                        Nenhum familiar disponível para vincular ainda.
+                                    </p>
+                                    <p className="text-slate-400 text-xs mb-6">
+                                        Você pode cadastrar este membro agora e fazer a vinculação depois.
+                                    </p>
+                                    <button
+                                        onClick={() => confirmarEscolha(papelEscolhidoAtual, '')}
+                                        className="px-6 py-2 bg-slate-800 text-white rounded-full text-sm font-medium hover:bg-slate-700 transition"
+                                    >
+                                        Cadastrar sem vínculo por agora
+                                    </button>
+                                </div>
+                            )}
+                            <button
+                                onClick={() => setShowOutroModal(false)}
+                                className="mt-4 w-full py-2 text-xs text-slate-400 hover:text-slate-600 transition-colors flex items-center justify-center gap-1"
+                            >
+                                ← Fechar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ====== MINI-MODAL DE CLÃ — Adicionar ao núcleo de um Tio ====== */}
+            {clanModal && (
+                <div
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[210] p-4"
+                    onClick={() => setClanModal(null)}
+                >
+                    <div
+                        className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-200"
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                            <div>
+                                <h3 className="text-lg font-serif font-black text-history-green uppercase tracking-wider">
+                                    Família de {clanModal.headName}
+                                </h3>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Quem você quer adicionar?
+                                </span>
+                            </div>
+                            <button
+                                onClick={() => setClanModal(null)}
+                                className="p-2 hover:bg-slate-200 rounded-full transition-colors"
+                            >
+                                <X size={20} className="text-slate-400" />
+                            </button>
+                        </div>
+                        <div className="p-5 flex flex-col gap-3">
+                            {clanModal.options.map((opt) => (
+                                <button
+                                    key={opt.papel}
+                                    onClick={() => {
+                                        const newUUID = generateCollateralId();
+                                        onChange({
+                                            papel: opt.papel,
+                                            parentesco: opt.parentesco,
+                                            nome: '',
+                                            vinculoFamiliarId: clanModal.headKey,
+                                            _newDocId: newUUID
+                                        });
+                                        onNext(newUUID);
+                                        setClanModal(null);
+                                    }}
+                                    className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-slate-100 hover:border-history-green/40 hover:bg-slate-50 transition-all group"
+                                >
+                                    <span className="font-bold text-slate-700 text-sm">{opt.label}</span>
+                                    <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200 flex items-center justify-center transition-colors">
+                                        <Plus size={16} className="text-slate-400 group-hover:text-slate-600" />
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* ====== DRAWERS ====== */}
             {showDuplicateDrawer && (
                 <div

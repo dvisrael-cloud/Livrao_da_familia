@@ -373,6 +373,91 @@ export const submitData = async (uid, formData) => {
                 dataToSave.dataCriacaoFormulario = new Date().toISOString().split('T')[0];
             }
 
+            // ── VÍNCULO AUTO-CRIAÇÃO: Irmão/Tio via radio button ─────────────────
+            const _vinculoNome = dataToSave._vinculoNomePai
+                ? dataToSave.nomePai
+                : dataToSave._vinculoNomeMae
+                ? dataToSave.nomeMae
+                : null;
+
+            // [DEBUG] — remover após diagnóstico
+            console.log('[AUTO-CRIAR-IRMAO] Iniciando...', {
+                _vinculoNomePai:   dataToSave._vinculoNomePai,
+                _vinculoNomeMae:   dataToSave._vinculoNomeMae,
+                nomePai:           dataToSave.nomePai,
+                nomeMae:           dataToSave.nomeMae,
+                parentesco:        dataToSave.parentesco,
+                vinculoFamiliarId: dataToSave.vinculoFamiliarId,
+                _vinculoNome_resolvido: _vinculoNome,
+                condicao_entrar:   !!(_vinculoNome && !dataToSave.vinculoFamiliarId)
+            });
+
+            if (_vinculoNome && !dataToSave.vinculoFamiliarId) {
+                const _normName = (s) => (s || '').trim().toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                const _isSobrinhoSave = /sobrinho|sobrinha/i.test(dataToSave.parentesco || '');
+
+                // Verificar se já existe membro com esse nome
+                const famSnap = await getDocs(collection(db, 'familias', uid, 'membros'));
+                let existingId = null;
+                famSnap.forEach(d => {
+                    if (_normName(d.data().nomeCompleto) === _normName(_vinculoNome)) {
+                        existingId = d.id;
+                    }
+                });
+
+                console.log('[AUTO-CRIAR-IRMAO] Busca por nome:', {
+                    buscando: _vinculoNome,
+                    existingId,
+                    totalMembros: famSnap.size,
+                    _isSobrinhoSave
+                });
+
+                if (existingId) {
+                    // Irmão/Tio já cadastrado — apenas vincular
+                    dataToSave.vinculoFamiliarId = existingId;
+                    console.log(`[AUTO-CRIAR-IRMAO] ✅ Vinculado ao existente: ${existingId}`);
+                } else {
+                    // Criar card básico do irmão/tio
+                    const newAnchorId = `collateral_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+                    const novoParentesco = _isSobrinhoSave ? 'Irmao' : 'Tio/a';
+                    const novoAnchorData = {
+                        nomeCompleto:  _vinculoNome,
+                        dataNascimento: '',
+                        parentesco:    novoParentesco,
+                        relationshipInfo: {
+                            papel:      novoParentesco,
+                            parentesco: novoParentesco
+                        },
+                        _autoCreated:  true,
+                        _createdFrom:  String(docId),
+                        dataCriacaoFormulario: new Date().toISOString().split('T')[0],
+                        lastUpdated:   new Date().toISOString()
+                    };
+                    console.log('[AUTO-CRIAR-IRMAO] Criando card:', { newAnchorId, novoAnchorData });
+                    await setDoc(
+                        doc(db, 'familias', uid, 'membros', newAnchorId),
+                        novoAnchorData
+                    );
+                    dataToSave.vinculoFamiliarId   = newAnchorId;
+                    dataToSave.linkedToAnchorId    = newAnchorId;
+                    console.log(`[AUTO-CRIAR-IRMAO] 🆕 Card salvo com sucesso: ${newAnchorId} (${_vinculoNome})`);
+                }
+            } else {
+                console.log('[AUTO-CRIAR-IRMAO] ⏭️ Bloco ignorado:', {
+                    motivo: !_vinculoNome ? 'Nenhum radio marcado' : 'vinculoFamiliarId já existe',
+                    _vinculoNome,
+                    vinculoFamiliarId: dataToSave.vinculoFamiliarId
+                });
+            }
+            // Limpar campos de controle — nunca devem persistir no Firestore
+            delete dataToSave._vinculoNomePai;
+            delete dataToSave._vinculoNomeMae;
+            delete dataToSave._autoFilledFields;
+
+            // ─────────────────────────────────────────────────────────────────────
+
+
             await setDoc(memberRef, {
                 ...dataToSave,
                 lastUpdated: new Date().toISOString()

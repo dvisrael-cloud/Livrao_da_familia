@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { formConfig } from '../../constants/formConfig';
 import { INITIAL_STATE } from '../../constants/initial_state';
 import { Button } from '../../components/common/UI';
@@ -18,272 +18,7 @@ import {
 } from './FormComponents';
 import { RichMediaInput } from './RichMediaInput';
 
-const XRAY_MODE = true;
-
-// ==================== MOTOR DE LINGUAGEM NATURAL ====================
-const ACTION_OPTIONS = [
-    { label: 'Esposo de', sexo: 'Masculino', conjugal: 'Casado' },
-    { label: 'Esposa de', sexo: 'Feminino', conjugal: 'Casado' },
-    { label: 'Companheiro de', sexo: 'Masculino', conjugal: 'União Estável' },
-    { label: 'Companheira de', sexo: 'Feminino', conjugal: 'União Estável' },
-    { label: 'Filho de', sexo: 'Masculino', conjugal: null },
-    { label: 'Filha de', sexo: 'Feminino', conjugal: null },
-    { label: 'Pai de', sexo: 'Masculino', conjugal: null },
-    { label: 'Mãe de', sexo: 'Feminino', conjugal: null },
-    { label: 'Irmão de', sexo: 'Masculino', conjugal: null },
-    { label: 'Irmã de', sexo: 'Feminino', conjugal: null }
-];
-
-export function calculateGlobalRelation(acaoA, ancoraRoleInfo) {
-    if (!acaoA || !ancoraRoleInfo) return 'Calculando...';
-    const acao = acaoA.toLowerCase();
-    const role = ancoraRoleInfo.toLowerCase();
-    
-    const isRep = role.includes('eu mesmo') || role === 'representante';
-    
-    if (acao.includes('filh')) {
-        if (isRep) return 'Filho(a)';
-        if (role.includes('irmã') || role === 'irmão') return 'Sobrinho(a)';
-        if (role.includes('pai') || role.includes('mãe')) return 'Irmão(ã)';
-        return `Filho(a) do(a) ${ancoraRoleInfo}`;
-    }
-    
-    if (acao.includes('espos') || acao.includes('companheir')) {
-        if (isRep) return 'Cônjuge';
-        if (role.includes('pai') || role.includes('mãe')) return 'Madrasta/Padrasto';
-        return `Cônjuge do(a) ${ancoraRoleInfo}`;
-    }
-    
-    if (acao.includes('pai') || acao.includes('mãe')) {
-        if (isRep) return 'Pai/Mãe';
-        if (role.includes('irmã') || role === 'irmão') return 'Pai/Mãe';
-        if (role.includes('cônjuge')) return 'Sogro/Sogra';
-        return `Pai/Mãe do(a) ${ancoraRoleInfo}`;
-    }
-
-    if (acao.includes('irmã') || acao === 'irmão') {
-        if (isRep) return 'Irmão/Irmã';
-        if (role.includes('pai') || role.includes('mãe')) return 'Tio/Tia';
-        if (role.includes('filh')) return 'Filho(a)';
-        return `Irmão/Irmã do(a) ${ancoraRoleInfo}`;
-    }
-
-    // Default estrito simplificado
-    return `Parente`;
-}
-
-const SearchableAnchorSelector = ({ value, onChange, familyMembers, currentDocId, disabled }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const [search, setSearch] = useState('');
-    
-    const selectedObj = Object.values(familyMembers || {}).find(m => (m.docId || m.id || m.key) === value);
-    const displayValue = selectedObj ? (selectedObj.nomeCompleto || selectedObj.name || selectedObj.id) : '';
-
-    const list = Object.values(familyMembers || {})
-        .filter(m => {
-            const mId = m.docId || m.id || m.key;
-            return mId && mId !== currentDocId && (m.nomeCompleto || m.name);
-        })
-        .filter(m => (m.nomeCompleto || m.name || '').toLowerCase().includes(search.toLowerCase()))
-        .sort((a,b) => (a.nomeCompleto||a.name).localeCompare(b.nomeCompleto||b.name));
-
-    return (
-        <div className="relative inline-block w-auto min-w-[180px] max-w-[280px]">
-            {isOpen ? (
-                <div className="absolute top-full mt-2 left-0 w-64 z-[100] bg-white rounded shadow-xl border border-slate-200 overflow-hidden font-sans">
-                    <input 
-                        type="text" 
-                        autoFocus
-                        className="w-full p-2 outline-none border-b border-slate-100 text-[13px]"
-                        placeholder="Buscar Familiar..."
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        onBlur={() => setTimeout(() => setIsOpen(false), 250)} 
-                    />
-                    <div className="max-h-40 overflow-y-auto">
-                        {list.length === 0 && <div className="p-2 text-[11px] text-slate-400 text-center">Nenhum encontrado.</div>}
-                        {list.map(m => (
-                            <div 
-                                key={m.docId || m.id || m.key}
-                                className="p-2 hover:bg-slate-50 cursor-pointer transition text-sm flex flex-col items-start border-b border-slate-50 last:border-0"
-                                onMouseDown={(e) => { 
-                                    e.preventDefault();
-                                    const uuidLinked = m.docId || m.id || m.key;
-                                    console.log("===============================");
-                                    console.log("[MOTOR SEMÂNTICO] UI Dropdown clicado.");
-                                    console.log("Membro Selecionado: ", m.nomeCompleto || m.name);
-                                    console.log("UUID Capturado e Vinculado: ", uuidLinked);
-                                    console.log("===============================");
-                                    onChange(uuidLinked, m);
-                                    setIsOpen(false);
-                                    setSearch('');
-                                }}
-                            >
-                                <span className="font-bold text-slate-700 leading-tight">{m.nomeCompleto || m.name}</span>
-                                <span className="text-[10px] text-slate-400 capitalize">{m.relationshipInfo?.parentesco || m.parentesco || 'Membro'}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            ) : (
-                <button 
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => setIsOpen(true)}
-                    className="w-full py-1 px-3 bg-transparent border-b-2 border-slate-300 text-center text-lg md:text-xl font-bold text-slate-900 focus:border-history-green outline-none transition-all flex items-center justify-center gap-2 hover:border-slate-400 disabled:opacity-50"
-                >
-                    <span className="truncate">{displayValue || '[Selecionar Âncora]'}</span>
-                    {!disabled && <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>}
-                </button>
-            )}
-        </div>
-    );
-};
-
-const ConnectionHeader = ({ formData, setFormData, updateFormData, familyMembers }) => {
-    
-    const selfId = formData?.docId || formData?.id || '';
-    
-    // ITEM 3: Esconder do Representante (Dono da Árvore)
-    const isRepresentative = selfId === "1DyECP2wp9PJ3FjttzjlcQTIDc92" || formData?.parentesco === 'Eu Mesmo' || formData?.relationshipInfo?.papel === 'Eu Mesmo';
-    if (isRepresentative) return null;
-
-    // ITEM 2: Ajuste de Trunk com nomes corretos
-    const isPai = formData?.parentesco === 'Pai' || formData?.relationshipInfo?.papel === 'Pai';
-    const isMae = formData?.parentesco === 'Mãe' || formData?.relationshipInfo?.papel === 'Mãe';
-    const isTrunkLocked = isPai || isMae;
-    
-    // CADEADO DO TRONCO SEGURO POR DB ID
-    if (isTrunkLocked) {
-        const spouseName = isPai ? 'Júlia Cohen Israel' : 'Vidal David Israel';
-        const verb = isPai ? 'Pai' : 'Mãe';
-        const thisName = isPai ? 'Vidal David Israel' : 'Júlia Cohen Israel';
-        
-        return (
-            <div className="w-full md:col-span-12 mb-8 animate-[fadeIn_0.5s_ease-out] flex flex-col items-center justify-center pt-4">
-                 <p className="text-xl md:text-2xl font-serif text-slate-800 text-center leading-relaxed">
-                     <strong>{thisName}</strong> é casado(a) com <strong>{spouseName}</strong> e é <strong>{verb} de David Vidal Israel</strong>.
-                 </p>
-                 <div className="mt-3 flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-full text-[10px] uppercase font-bold tracking-widest text-slate-500">
-                    <span>🔒</span>
-                    <span>Ligações Fixas do Tronco da Árvore</span>
-                 </div>
-            </div>
-        );
-    }
-    
-    const currentName = formData?.nomeCompleto || formData?.name || 'Este Membro';
-    const currentAcao = formData?.vinculoAcao || '';
-    const currentFamiliarId = formData?.vinculoFamiliarId || '';
-    
-    React.useEffect(() => {
-        if (currentFamiliarId && currentAcao && !formData.relationshipInfo?.papel) {
-             const mDoc = familyMembers[currentFamiliarId] || Object.values(familyMembers).find(m => (m.docId || m.id || m.key) === currentFamiliarId);
-             if (mDoc) {
-                 const roleB = mDoc.relationshipInfo?.papel || mDoc.parentesco || '';
-                 const calculatedRole = calculateGlobalRelation(currentAcao, roleB);
-                 updateFormData('parentesco', calculatedRole);
-                 updateFormData('relationshipInfo', { ...(formData.relationshipInfo || {}), papel: calculatedRole, parentesco: calculatedRole });
-             }
-        }
-    }, [currentFamiliarId, currentAcao, familyMembers]);
-    
-    const handleAcaoChange = (e) => {
-        const acao = e.target.value;
-        const newUpdates = { vinculoAcao: acao };
-        
-        const match = ACTION_OPTIONS.find(a => a.label === acao);
-        if (match) {
-            if (match.sexo) newUpdates.sexo = match.sexo;
-            if (match.conjugal) newUpdates.situacaoConjugal = match.conjugal;
-        }
-        
-        // Recalcular Motor Síncrono
-        if (currentFamiliarId && acao) {
-            const mDoc = familyMembers[currentFamiliarId] || Object.values(familyMembers).find(m => (m.docId || m.id || m.key) === currentFamiliarId);
-            if (mDoc) {
-                const roleB = mDoc.relationshipInfo?.papel || mDoc.parentesco || '';
-                const calculatedRole = calculateGlobalRelation(acao, roleB);
-                newUpdates.parentesco = calculatedRole;
-                newUpdates.relationshipInfo = { ...(formData.relationshipInfo || {}), papel: calculatedRole, parentesco: calculatedRole };
-                
-                // Item 5: Sincronia de Pais
-                if (acao === 'Filho de' || acao === 'Filha de') {
-                    if (mDoc.sexo === 'Masculino' || !mDoc.sexo) {
-                        newUpdates.nomePai = mDoc.nomeCompleto || mDoc.name || '';
-                    } else if (mDoc.sexo === 'Feminino') {
-                        newUpdates.nomeMae = mDoc.nomeCompleto || mDoc.name || '';
-                    }
-                }
-            }
-        }
-        
-        Object.entries(newUpdates).forEach(([k, v]) => updateFormData(k, v));
-    };
-    
-    const handleAncoraChange = (vId, ancDoc) => {
-        const newUpdates = { vinculoFamiliarId: vId };
-        
-        if (currentAcao && ancDoc) {
-             const roleB = ancDoc.relationshipInfo?.papel || ancDoc.parentesco || '';
-             const calculatedRole = calculateGlobalRelation(currentAcao, roleB);
-             
-             newUpdates.parentesco = calculatedRole;
-             newUpdates.relationshipInfo = { ...(formData.relationshipInfo || {}), papel: calculatedRole, parentesco: calculatedRole };
-             
-             // Item 5: Sincronia de Pais
-             if (currentAcao === 'Filho de' || currentAcao === 'Filha de') {
-                 if (ancDoc.sexo === 'Masculino' || !ancDoc.sexo) {
-                     newUpdates.nomePai = ancDoc.nomeCompleto || ancDoc.name || '';
-                 } else if (ancDoc.sexo === 'Feminino') {
-                     newUpdates.nomeMae = ancDoc.nomeCompleto || ancDoc.name || '';
-                 }
-             }
-        }
-        
-        Object.entries(newUpdates).forEach(([k, v]) => updateFormData(k, v));
-    };
-
-    return (
-        <div className="w-full md:col-span-12 mb-8 animate-[fadeIn_0.5s_ease-out] text-slate-800 flex justify-center px-2" style={{ fontFamily: "'Cormorant Garamond', 'Playfair Display', serif" }}>
-            <div className="text-xl md:text-[1.35rem] text-center flex flex-wrap items-center justify-center gap-x-2 gap-y-4 max-w-4xl leading-loose">
-                
-                <strong className="tracking-tight" style={{ fontFamily: "'Cinzel', serif" }}>{currentName}</strong>
-                
-                <span>é</span>
-                
-                <select 
-                    className="inline-block px-1 py-1 bg-transparent border-b-2 border-slate-300 text-center font-bold text-slate-900 focus:border-history-green outline-none transition-all cursor-pointer appearance-none min-w-[130px]"
-                    style={{ textAlignLast: 'center' }}
-                    value={currentAcao}
-                    onChange={handleAcaoChange}
-                >
-                    <option value="" disabled>Selecione a relação</option>
-                    {ACTION_OPTIONS.map(a => <option key={a.label} value={a.label}>{a.label}</option>)}
-                </select>
-                
-                <span>de</span>
-                
-                <SearchableAnchorSelector 
-                    value={currentFamiliarId} 
-                    onChange={handleAncoraChange} 
-                    familyMembers={familyMembers}
-                    currentDocId={selfId}
-                />
-                
-                {currentAcao && currentFamiliarId && (
-                    <span className="flex items-center gap-1 flex-wrap justify-center animate-[fadeIn_0.4s_ease-out]">
-                        <span className="italic px-1">—</span>
-                        <span className="text-[14px] leading-none opacity-60 relative top-[-1px] font-sans">*</span>
-                        <span className="tracking-tight px-0.5">
-                            que é seu <strong style={{ fontFamily: "'Cinzel', serif" }}>{(formData?.relationshipInfo?.papel || 'Calculando...')}</strong>
-                        </span><span className="relative left-[-2px]">.</span>
-                    </span>
-                )}
-            </div>
-        </div>
-    );
-};
+const XRAY_MODE = false;
 
 /**
  * Main Form Engine Component
@@ -291,6 +26,7 @@ const ConnectionHeader = ({ formData, setFormData, updateFormData, familyMembers
  * Supports controlled/uncontrolled mode and handles complex visibility logic
  */
 export const FormEngine = ({
+
     formData,
     setFormData,
     onSave,
@@ -345,6 +81,20 @@ export const FormEngine = ({
             setInternalIndex(nextIndex);
         }
     }, [isControlled, onStepChange, currentStepIndex]);
+
+    // Detecta se há dados significativos preenchidos — usa nomeCompleto como sinal principal
+    const hasAnyData = useCallback(() => {
+        return !!(formData.nomeCompleto?.trim());
+    }, [formData.nomeCompleto]);
+
+    // Saída inteligente: respeita onCancel do pai ou volta para a árvore
+    const handleExit = useCallback(() => {
+        if (onCancel) {
+            onCancel();
+        } else {
+            setCurrentStepIndex(0);
+        }
+    }, [onCancel, setCurrentStepIndex]);
 
     const currentSection = sections[currentStepIndex] || sections[0];
 
@@ -429,6 +179,8 @@ export const FormEngine = ({
     }, [formData]);
 
     // ==================== STATE CLEANUP (Conditional Visibility) ====================
+    const prevVisibleFields = useRef(null);
+
     useEffect(() => {
         // Collect all currently visible field IDs
         const visibleFieldIds = new Set();
@@ -438,56 +190,45 @@ export const FormEngine = ({
             }
         });
 
+        // Serializa para comparar com a rodada anterior
+        const visibleKey = [...visibleFieldIds].sort().join(',');
+        if (prevVisibleFields.current === visibleKey) return; // nada mudou, sai
+        prevVisibleFields.current = visibleKey;
+
         // Identify fields that should be cleared
-        const cleanedData = { ...formData };
-        let hasChanges = false;
+        setFormData(prev => {
+            const updated = { ...prev };
+            let hasChanges = false;
 
-        Object.keys(formData).forEach(key => {
-            // Skip internal, structural, or non-config fields
-            if (key.startsWith('_') || key === 'relationshipInfo' || key === 'parentesco' || key === 'id_unico' || key === 'vinculoAcao' || key === 'vinculoFamiliarId') return;
+            Object.keys(prev).forEach(key => {
+                // Skip internal, structural, or non-config fields
+                if (
+                    key.startsWith('_') ||
+                    key === 'relationshipInfo' ||
+                    key === 'parentesco' ||
+                    key === 'id_unico' ||
+                    key === 'vinculoAcao' ||
+                    key === 'vinculoFamiliarId'
+                ) return;
 
-            // Check if it's a field defined in config
-            const configField = formConfig.find(f => f.fieldId === key);
-            if (configField && !visibleFieldIds.has(key)) {
-                // Field exists in config but is currently invisible - clear it
-                if (formData[key] !== undefined && formData[key] !== '' && formData[key] !== null) {
-                    delete cleanedData[key];
-                    hasChanges = true;
+                const configField = formConfig.find(f => f.fieldId === key);
+                if (configField && !visibleFieldIds.has(key)) {
+                    if (prev[key] !== undefined && prev[key] !== '' && prev[key] !== null) {
+                        delete updated[key];
+                        hasChanges = true;
+                    }
                 }
-            }
+            });
+
+            return hasChanges ? updated : prev;
         });
 
-        if (hasChanges) {
-            // Use a functional update to avoid stale state issues and loops
-            setFormData(prev => {
-                const updated = { ...prev };
-                let reallyChanged = false;
-                Object.keys(cleanedData).forEach(k => {
-                   if (updated[k] !== cleanedData[k]) {
-                       updated[k] = cleanedData[k];
-                       reallyChanged = true;
-                   }
-                });
-                // Also handle deletions
-                Object.keys(updated).forEach(k => {
-                    if (cleanedData[k] === undefined && updated[k] !== undefined) {
-                        if (!k.startsWith('_') && k !== 'relationshipInfo' && k !== 'parentesco' && k !== 'id_unico') {
-                            delete updated[k];
-                            reallyChanged = true;
-                        }
-                    }
-                });
-                return reallyChanged ? updated : prev;
-            });
-        }
-    }, [formData, isVisible]);
-
-    // ==================== FORM DATA UPDATER ====================
+    // ✅ formData REMOVIDO das dependências — isVisible já captura o que precisa
+    }, [isVisible]);
 
     // ==================== FORM DATA UPDATER ====================
     const updateFormData = useCallback((key, value) => {
         if (key === 'sexo') {
-            const currentRole = formData.relationshipInfo?.papel || '';
             const pivotMap = {
                 'Avô Paterno': { targetRole: 'Avó Paterna', reqGender: 'Feminino', revertGender: 'Masculino' },
                 'Avó Paterna': { targetRole: 'Avô Paterno', reqGender: 'Masculino', revertGender: 'Feminino' },
@@ -505,33 +246,41 @@ export const FormEngine = ({
                 'Mãe da Avó Materna': { targetRole: 'Pai da Avó Materna', reqGender: 'Masculino', revertGender: 'Feminino' }
             };
 
-            const pivotRule = pivotMap[currentRole];
-            if (pivotRule && value === pivotRule.reqGender) {
-                // Pivot try
-                const occupant = familyMembers[pivotRule.targetRole];
-                if (occupant && occupant.nomeCompleto) {
-                    // Collision block!
-                    alert(`Aposição Inválida: O cargo de '${pivotRule.targetRole}' já se encontra ocupado por ${occupant.nomeCompleto || occupant.name}. Mude a aba ou exclua o parente antes de trocar o sexo.`);
-                    setFormData(prev => ({ ...prev, sexo: pivotRule.revertGender }));
-                    return;
-                } else {
-                    // Safe Pivot
-                    setFormData(prev => ({ 
-                        ...prev, 
-                        sexo: value,
-                        parentesco: pivotRule.targetRole,
-                        relationshipInfo: {
-                            ...prev.relationshipInfo,
-                            papel: pivotRule.targetRole,
-                            parentesco: pivotRule.targetRole
-                        }
-                    }));
-                    return;
+            setFormData(prev => {
+                // ✅ Lê currentRole do prev — nunca do formData closure (stale-safe)
+                const currentRole = prev.relationshipInfo?.papel || '';
+                const pivotRule = pivotMap[currentRole];
+
+                if (pivotRule && value === pivotRule.reqGender) {
+                    // Pivot try
+                    const occupant = familyMembers[pivotRule.targetRole];
+                    if (occupant && occupant.nomeCompleto) {
+                        // Collision block — alerta fora do updater para não bloquear render
+                        setTimeout(() => alert(`Aposição Inválida: O cargo de '${pivotRule.targetRole}' já se encontra ocupado por ${occupant.nomeCompleto || occupant.name}. Mude a aba ou exclua o parente antes de trocar o sexo.`), 0);
+                        return { ...prev, sexo: pivotRule.revertGender };
+                    } else {
+                        // Safe Pivot
+                        return {
+                            ...prev,
+                            sexo: value,
+                            parentesco: pivotRule.targetRole,
+                            relationshipInfo: {
+                                ...prev.relationshipInfo,
+                                papel: pivotRule.targetRole,
+                                parentesco: pivotRule.targetRole
+                            }
+                        };
+                    }
                 }
-            }
+
+                // Sem pivot: atualização simples do sexo
+                return { ...prev, [key]: value };
+            });
+            return;
         }
         setFormData(prev => ({ ...prev, [key]: value }));
-    }, [setFormData, formData, familyMembers]);
+    // ✅ formData REMOVIDO — currentRole lido via prev dentro do updater funcional
+    }, [setFormData, familyMembers]);
 
     // ==================== NAVIGATION HANDLERS ====================
     const handleNext = useCallback(() => {
@@ -583,16 +332,9 @@ export const FormEngine = ({
     const handleFamilyTreeChange = useCallback((newVal, fieldId) => {
         const existingData = familyMembers[newVal.papel];
 
-        console.log('[FormEngine] handleFamilyTreeChange chamado:', {
-            papel: newVal.papel,
-            parentesco: newVal.parentesco,
-            existingDataEncontrado: !!existingData,
-            caminho: existingData ? 'A — EDIÇÃO (dados existentes)' : 'B — CRIAÇÃO (formulário limpo)'
-        });
 
         if (existingData) {
             // Caminho A: membro já existe → carrega dados reais com prioridade total
-            console.log('[FormEngine] Caminho A — carregando dados de:', existingData.nomeCompleto || newVal.papel);
 
             // [❗CORREÇÃO CRÍTICA] Monta o relationshipInfo com a seguinte prioridade:
             // 1. Dados reais salvos no Firestore (existingData.relationshipInfo)
@@ -608,7 +350,8 @@ export const FormEngine = ({
             };
 
             setFormData(prev => ({
-                ...existingData,
+                ...INITIAL_STATE,       // reseta primeiro — evita vazamento do membro anterior
+                ...existingData,        // aplica dados reais do Firestore
                 _originalRole: newVal.papel,
                 repName: prev.repName,
                 repEmail: prev.repEmail,
@@ -619,7 +362,6 @@ export const FormEngine = ({
             setCurrentStepIndex(3);
         } else {
             // Caminho B: novo parente → reset com INITIAL_STATE limpo
-            console.log('[FormEngine] Caminho B — Criando novo parente. Resetando estado com INITIAL_STATE.');
             setFormData(prev => {
                 const newState = {
                     ...INITIAL_STATE,
@@ -629,7 +371,10 @@ export const FormEngine = ({
                     [fieldId]: newVal,
                     nomeCompleto: newVal.nome || '',
                     // [FASE 2] Propaga o UUID gerado pelo FamilyTreeSelector
-                    ...(newVal._newDocId ? { docId: newVal._newDocId, id: newVal._newDocId } : {})
+                    ...(newVal._newDocId ? { docId: newVal._newDocId, id: newVal._newDocId } : {}),
+                    // [ETAPA 3] Propaga vinculoFamiliarId e parentesco escolhidos no modal
+                    ...(newVal.vinculoFamiliarId ? { vinculoFamiliarId: newVal.vinculoFamiliarId } : {}),
+                    ...(newVal.parentesco       ? { parentesco:        newVal.parentesco        } : {}),
                 };
 
                 // 1. SMART PRE-FILL FOR SPOUSE
@@ -668,7 +413,6 @@ export const FormEngine = ({
                     }
                 }
 
-                // 3. SMART PRE-FILL FOR ANCESTORS (Parents, Grandparents, etc.)
                 const ANCESTOR_PREC_MAP = {
                     'Pai': { child: 'Eu mesmo', field: 'nomePai', gender: 'Masculino' },
                     'Mãe': { child: 'Eu mesmo', field: 'nomeMae', gender: 'Feminino' },
@@ -686,11 +430,166 @@ export const FormEngine = ({
                     'Mãe da Avó Materna': { child: 'Avó Materna', field: 'nomeMae', gender: 'Feminino' }
                 };
 
+                // ── Inicializa o array de controle de campos pré-preenchidos ──────
+                newState._autoFilledFields = [];
+
                 const precData = ANCESTOR_PREC_MAP[newVal.papel];
                 if (precData) {
                     const childDoc = familyMembers[precData.child] || {};
                     newState.nomeCompleto = childDoc[precData.field] || '';
                     newState.sexo = precData.gender;
+                    // nomeCompleto vem do ancestral — marca como auto-filled
+                    if (newState.nomeCompleto) newState._autoFilledFields.push('nomeCompleto');
+                }
+
+                // 4. SMART PRE-FILL FOR SIBLINGS (Irmão/Irmã)
+                const isIrmao = /irmão|irmao/i.test(newVal.parentesco);
+                const isIrma  = /irmã|irma$/i.test(newVal.parentesco);
+                if (isIrmao || isIrma) {
+                    const repData = familyMembers['Eu mesmo'] || {};
+                    if (!newState.nomePai && repData.nomePai) {
+                        newState.nomePai = repData.nomePai;
+                        newState._autoFilledFields.push('nomePai');
+                    }
+                    if (!newState.nomeMae && repData.nomeMae) {
+                        newState.nomeMae = repData.nomeMae;
+                        newState._autoFilledFields.push('nomeMae');
+                    }
+                    if (isIrmao) newState.sexo = 'Masculino';
+                    if (isIrma)  newState.sexo = 'Feminino';
+                }
+
+                // 5. SMART PRE-FILL FOR CÔNJUGE DO IRMÃO
+                const isCnjIrmao = /cônjuge.*irm|conjuge.*irm/i.test(newVal.parentesco);
+                if (isCnjIrmao && newVal.vinculoFamiliarId) {
+                    const irmaoData = familyMembers[newVal.vinculoFamiliarId] ||
+                        Object.values(familyMembers).find(m =>
+                            (m.docId || m.id || m.key) === newVal.vinculoFamiliarId ||
+                            m.key === newVal.vinculoFamiliarId
+                        ) || {};
+                    if (!newState.nomeConjuge && irmaoData.nomeCompleto) {
+                        newState.nomeConjuge = irmaoData.nomeCompleto;
+                        newState._autoFilledFields.push('nomeConjuge');
+                    }
+                    newState.situacaoConjugal = 'Casado';
+                    if (irmaoData.sexo === 'Masculino') newState.sexo = 'Feminino';
+                    else if (irmaoData.sexo === 'Feminino') newState.sexo = 'Masculino';
+                }
+
+                // 6. SMART PRE-FILL FOR SOBRINHO/A
+                const isSobrinho = /sobrinho/i.test(newVal.parentesco);
+                const isSobrinha = /sobrinha/i.test(newVal.parentesco);
+
+                console.log('[SOBRINHO] parentesco="' + newVal.parentesco + '" | isSobrinho=' + isSobrinho + ' | vinculoFamiliarId="' + newVal.vinculoFamiliarId + '"');
+
+                if ((isSobrinho || isSobrinha) && newVal.vinculoFamiliarId) {
+                    const ancData = familyMembers[newVal.vinculoFamiliarId] ||
+                        Object.values(familyMembers).find(m =>
+                            (m.docId || m.id || m.key) === newVal.vinculoFamiliarId ||
+                            m.key === newVal.vinculoFamiliarId
+                        ) || {};
+
+                    console.log('[SOBRINHO] ancData.nomeCompleto="' + ancData.nomeCompleto + '" | ancData.sexo="' + ancData.sexo + '" | docId="' + (ancData.docId || ancData.id || ancData.key) + '"');
+                    console.log('[SOBRINHO] Condição nomePai: sexo=Masculino?' + (ancData.sexo === 'Masculino') + ' | nomePai vazio?' + (!newState.nomePai) + ' | nomeCompleto presente?' + (!!ancData.nomeCompleto));
+                    console.log('[SOBRINHO] Condição nomeMae: sexo=Feminino?' + (ancData.sexo === 'Feminino') + ' | nomeMae vazio?' + (!newState.nomeMae) + ' | nomeCompleto presente?' + (!!ancData.nomeCompleto));
+
+                    if (ancData.sexo === 'Masculino' && !newState.nomePai && ancData.nomeCompleto) {
+                        newState.nomePai = ancData.nomeCompleto;
+                        newState._autoFilledFields.push('nomePai');
+                        console.log('[SOBRINHO] ✅ nomePai preenchido com:', ancData.nomeCompleto);
+                    } else if (ancData.sexo === 'Feminino' && !newState.nomeMae && ancData.nomeCompleto) {
+                        newState.nomeMae = ancData.nomeCompleto;
+                        newState._autoFilledFields.push('nomeMae');
+                        console.log('[SOBRINHO] ✅ nomeMae preenchido com:', ancData.nomeCompleto);
+                    } else {
+                        console.log('[SOBRINHO] ❌ PRE-FILL NÃO EXECUTOU — sexo ausente ou campo já preenchido');
+                        // Fallback: se não tem sexo cadastrado, preenche nomePai como fallback
+                        if (!ancData.sexo && !newState.nomePai && ancData.nomeCompleto) {
+                            newState.nomePai = ancData.nomeCompleto;
+                            newState._autoFilledFields.push('nomePai');
+                            console.log('[SOBRINHO] ⚠️ Fallback: nomePai preenchido (sexo ausente):', ancData.nomeCompleto);
+                        }
+                    }
+                    if (isSobrinho) newState.sexo = 'Masculino';
+                    if (isSobrinha) newState.sexo = 'Feminino';
+                }
+
+
+
+                // 7. SMART PRE-FILL FOR TIOS PATERNOS/MATERNOS
+                const isTioPaterno = /tio.*paterno|tia.*paterna/i.test(newVal.parentesco);
+                const isTioMaterno = /tio.*materno|tia.*materna/i.test(newVal.parentesco);
+                if (isTioPaterno || isTioMaterno) {
+                    const avoKey  = isTioPaterno ? 'Avô Paterno' : 'Avô Materno';
+                    const avoaKey = isTioPaterno ? 'Avó Paterna' : 'Avó Materna';
+                    const avoData  = familyMembers[avoKey]  || {};
+                    const avoaData = familyMembers[avoaKey] || {};
+                    if (!newState.nomePai && avoData.nomeCompleto) {
+                        newState.nomePai = avoData.nomeCompleto;
+                        newState._autoFilledFields.push('nomePai');
+                    }
+                    if (!newState.nomeMae && avoaData.nomeCompleto) {
+                        newState.nomeMae = avoaData.nomeCompleto;
+                        newState._autoFilledFields.push('nomeMae');
+                    }
+                    newState.sexo = /tia/i.test(newVal.parentesco) ? 'Feminino' : 'Masculino';
+                }
+
+                // 8. SMART PRE-FILL FOR PRIMOS/PRIMAS
+                const isPrimo = /primo/i.test(newVal.parentesco);
+                const isPrima = /prima/i.test(newVal.parentesco);
+                if ((isPrimo || isPrima) && newVal.vinculoFamiliarId) {
+                    const tioData = familyMembers[newVal.vinculoFamiliarId] ||
+                        Object.values(familyMembers).find(m =>
+                            (m.docId || m.id || m.key) === newVal.vinculoFamiliarId ||
+                            m.key === newVal.vinculoFamiliarId
+                        ) || {};
+                    if (tioData.sexo === 'Masculino' && !newState.nomePai && tioData.nomeCompleto) {
+                        newState.nomePai = tioData.nomeCompleto;
+                        newState._autoFilledFields.push('nomePai');
+                    } else if (tioData.sexo === 'Feminino' && !newState.nomeMae && tioData.nomeCompleto) {
+                        newState.nomeMae = tioData.nomeCompleto;
+                        newState._autoFilledFields.push('nomeMae');
+                    }
+                    if (isPrimo) newState.sexo = 'Masculino';
+                    if (isPrima) newState.sexo = 'Feminino';
+                }
+
+                // 9. SMART PRE-FILL FOR GENRO/NORA
+                const isGenro = /genro/i.test(newVal.parentesco);
+                const isNora  = /nora/i.test(newVal.parentesco);
+                if ((isGenro || isNora) && newVal.vinculoFamiliarId) {
+                    const filhoData = familyMembers[newVal.vinculoFamiliarId] ||
+                        Object.values(familyMembers).find(m =>
+                            (m.docId || m.id || m.key) === newVal.vinculoFamiliarId ||
+                            m.key === newVal.vinculoFamiliarId
+                        ) || {};
+                    if (!newState.nomeConjuge && filhoData.nomeCompleto) {
+                        newState.nomeConjuge = filhoData.nomeCompleto;
+                        newState._autoFilledFields.push('nomeConjuge');
+                    }
+                    newState.situacaoConjugal = 'Casado';
+                    newState.sexo = isNora ? 'Feminino' : 'Masculino';
+                }
+
+                // 10. SMART PRE-FILL FOR NETO/NETA
+                const isNeto = /^neto/i.test(newVal.parentesco);
+                const isNeta = /^neta/i.test(newVal.parentesco);
+                if ((isNeto || isNeta) && newVal.vinculoFamiliarId) {
+                    const filhoData = familyMembers[newVal.vinculoFamiliarId] ||
+                        Object.values(familyMembers).find(m =>
+                            (m.docId || m.id || m.key) === newVal.vinculoFamiliarId ||
+                            m.key === newVal.vinculoFamiliarId
+                        ) || {};
+                    if (filhoData.sexo === 'Masculino' && !newState.nomePai && filhoData.nomeCompleto) {
+                        newState.nomePai = filhoData.nomeCompleto;
+                        newState._autoFilledFields.push('nomePai');
+                    } else if (filhoData.sexo === 'Feminino' && !newState.nomeMae && filhoData.nomeCompleto) {
+                        newState.nomeMae = filhoData.nomeCompleto;
+                        newState._autoFilledFields.push('nomeMae');
+                    }
+                    if (isNeto) newState.sexo = 'Masculino';
+                    if (isNeta) newState.sexo = 'Feminino';
                 }
 
                 return newState;
@@ -706,8 +605,8 @@ export const FormEngine = ({
 
         const fieldValue = item.fieldId ? formData[item.fieldId] : undefined;
 
-        // Dynamic tense replacement based on vitalStatus
-        const isAlive = formData.vitalStatus === 'Vivo';
+        // Dynamic tense replacement based on situacaoVital
+        const isAlive = formData.situacaoVital === 'Vivo';
         const applyTense = (text) => {
             if (!text) return text;
             if (isAlive) {
@@ -750,13 +649,51 @@ export const FormEngine = ({
             value: fieldValue,
             onChange: handleChange,
             formData,
-            updateData: updateFormData
+            updateData: updateFormData,
+            autoFilledFields: formData._autoFilledFields || []
         };
 
+
         switch (item.component) {
-            case 'InputField':
-            case 'EditableField':
+        case 'InputField':
+            case 'EditableField': {
+                // Radio button para nomePai/nomeMae quando membro é Sobrinho/a ou Primo/a
+                const _isSobrinhoR = /sobrinho|sobrinha/i.test(formData.parentesco || formData.relationshipInfo?.papel || '');
+                const _isPrimoR    = /primo|prima/i.test(formData.parentesco || formData.relationshipInfo?.papel || '');
+                const _needsRadio  = (_isSobrinhoR || _isPrimoR) &&
+                                     (item.fieldId === 'nomePai' || item.fieldId === 'nomeMae');
+
+                if (_needsRadio) {
+                    const _radioLabel   = _isSobrinhoR ? 'Irmão/ã' : 'Tio/a';
+                    const _checkedPai   = formData._vinculoNomePai === true;
+                    const _checkedMae   = formData._vinculoNomeMae === true;
+                    const _isNomePai    = item.fieldId === 'nomePai';
+                    return (
+                        <FormInputWithRadio
+                            key={item.fieldId}
+                            item={displayItem}
+                            value={fieldValue}
+                            onChange={handleChange}
+                            radioLabel={_radioLabel}
+                            radioChecked={_isNomePai ? _checkedPai : _checkedMae}
+                            radioDisabled={_isNomePai ? _checkedMae : _checkedPai}
+                            autoFilledFields={formData._autoFilledFields || []}
+                            updateData={updateFormData}
+                            formData={formData}
+                            onRadioChange={(checked) => {
+                                if (_isNomePai) {
+                                    updateFormData('_vinculoNomePai', checked);
+                                    if (checked) updateFormData('_vinculoNomeMae', false);
+                                } else {
+                                    updateFormData('_vinculoNomeMae', checked);
+                                    if (checked) updateFormData('_vinculoNomePai', false);
+                                }
+                            }}
+                        />
+                    );
+                }
                 return <FormInput {...fieldProps} />;
+            }
 
             case 'TextAreaField':
                 return <FormTextArea {...fieldProps} />;
@@ -907,17 +844,8 @@ export const FormEngine = ({
                 style={{ animationFillMode: 'both' }}
             >
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-x-6 gap-y-4 items-start pt-2">
-                    {/* [NOVA ARQUITETURA] Header de Ligação: Motor de Linguagem Natural e Graus de Parentesco */}
-                    {!isFamilyTreeSection && (
-                        <ConnectionHeader 
-                            formData={formData} 
-                            setFormData={setFormData}
-                            updateFormData={updateFormData}
-                            familyMembers={familyMembers}
-                        />
-                    )}
-
                     {currentSection.items.map(item => {
+
                         if (!isVisible(item)) return null;
 
                         const component = renderField(item);
@@ -955,12 +883,29 @@ export const FormEngine = ({
             <div className="flex justify-end items-center gap-4 mt-8 pb-32">
                 {!isFamilyTreeSection && (
                     <>
+                    {/* Botão Cancelar — sempre visível */}
                         <NavigationButton
-                            onClick={() => onCancel ? onCancel() : window.history.back()}
+                            onClick={handleExit}
                             variant="back"
                         >
                             Cancelar
                         </NavigationButton>
+
+                        {/* Botão Sair sem salvar — só aparece quando há dados preenchidos */}
+                        {hasAnyData() && (
+                            <NavigationButton
+                                onClick={() => {
+                                    if (window.confirm(
+                                        'Tem certeza que deseja sair? Os dados preenchidos não serão salvos.'
+                                    )) {
+                                        handleExit();
+                                    }
+                                }}
+                                variant="exit"
+                            >
+                                Sair sem salvar
+                            </NavigationButton>
+                        )}
                         
                         {currentStepIndex > 2 && (
                             <NavigationButton
@@ -1051,16 +996,92 @@ function evaluateConditionalRule(rule, formData) {
 // ==================== SUB-COMPONENTS ====================
 
 /**
+ * FormInputWithRadio — Campo de texto com botão radio elegante ao lado.
+ * Usado em nomePai/nomeMae para Sobrinho/a e Primo/a marcarem o vínculo familiar.
+ */
+const FormInputWithRadio = ({
+    item, value, onChange,
+    radioLabel, radioChecked, radioDisabled, onRadioChange,
+    autoFilledFields = [], updateData, formData
+}) => {
+    const isAutoFilled = item?.fieldId ? autoFilledFields.includes(item.fieldId) : false;
+
+    const handleChange = (val) => {
+        onChange(val);
+        if (isAutoFilled && updateData && item?.fieldId) {
+            const current = formData?._autoFilledFields || [];
+            updateData('_autoFilledFields', current.filter(f => f !== item.fieldId));
+        }
+    };
+
+    return (
+    <div className="flex flex-col w-full relative group/field mb-8 px-0.5">
+        <div className="flex justify-between items-end mb-2 gap-4">
+            <label className="text-lg font-serif font-bold text-slate-800 leading-tight flex-1">
+                {item.label}
+                {item.required && <span className="text-amber-600"> *</span>}
+            </label>
+        </div>
+        <div className="flex items-center gap-3">
+            {/* Campo de texto */}
+            <div className="flex-1">
+                <input
+                    type="text"
+                    value={value || ''}
+                    onChange={e => handleChange(e.target.value)}
+                    placeholder={item.placeholder || ''}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 font-sans shadow-sm outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 transition-all placeholder:text-slate-300"
+                />
+            </div>
+            {/* Botão radio elegante */}
+            <button
+                type="button"
+                disabled={radioDisabled}
+                onClick={() => onRadioChange(!radioChecked)}
+                title={radioDisabled ? 'Já existe um vínculo marcado no outro campo' : `Marcar como ${radioLabel}`}
+                className={[
+                    'flex items-center gap-2 px-3 py-2 rounded-xl border transition-all shrink-0 text-xs font-bold',
+                    radioChecked
+                        ? 'bg-emerald-50 border-emerald-600 text-emerald-700'
+                        : 'bg-slate-50 border-slate-200 text-slate-400 hover:border-slate-300',
+                    radioDisabled ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
+                ].join(' ')}
+            >
+                <div className={[
+                    'w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all',
+                    radioChecked ? 'border-emerald-600 bg-emerald-600' : 'border-slate-300 bg-white'
+                ].join(' ')}>
+                    {radioChecked && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                </div>
+                <span>{radioLabel}</span>
+            </button>
+        </div>
+        {item.helpText && (
+            <p className="text-xs text-slate-500 mt-2 ml-1">{item.helpText}</p>
+        )}
+        {isAutoFilled && (
+            <div className="flex items-center gap-1 mt-1.5 ml-1">
+                <span className="text-xs text-emerald-600 font-medium flex items-center gap-1 animate-[fadeIn_0.3s_ease-out]">
+                    🔗 <span>Preenchido automaticamente</span>
+                </span>
+            </div>
+        )}
+    </div>
+    );
+};
+
+/**
  * Navigation Button Component
  * Provides consistent styling for all navigation buttons
  */
 const NavigationButton = ({ onClick, disabled = false, variant = 'default', children }) => {
     const variants = {
-        tree: 'bg-amber-200 text-amber-950 border-amber-300 hover:bg-amber-300',
-        back: 'bg-white text-black border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed',
+        tree:      'bg-amber-200 text-amber-950 border-amber-300 hover:bg-amber-300',
+        back:      'bg-white text-black border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed',
         reference: 'bg-slate-200 text-slate-800 border-slate-300 hover:bg-slate-300',
-        next: 'bg-slate-900 text-white border-slate-900 hover:bg-slate-800',
-        save: 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700'
+        next:      'bg-slate-900 text-white border-slate-900 hover:bg-slate-800',
+        save:      'bg-blue-600 text-white border-blue-600 hover:bg-blue-700',
+        exit:      'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
     };
 
     const baseClasses = 'h-9 px-5 rounded-full font-bold text-[9px] uppercase tracking-wider shadow-sm hover:shadow-md transition-all min-w-[100px] flex items-center justify-center border';

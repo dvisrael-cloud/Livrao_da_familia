@@ -4,7 +4,16 @@ import { HelpCircle, AlertCircle, ChevronDown } from 'lucide-react';
 import { ReferenceButtonTrigger, ReferenceForm } from './ReferenceButton';
 
 // --- SMART WRAPPER COMPONENT ---
-export const SmartFieldWrapper = ({ item, currentValue, onChange, children, label, formData, updateData }) => {
+export const SmartFieldWrapper = ({ item, currentValue, onChange, children, label, formData, updateData, autoFilledFields = [] }) => {
+    const isAutoFilled = item?.fieldId ? autoFilledFields.includes(item.fieldId) : false;
+
+    const handleChangeWithAutoFillClear = (val) => {
+        onChange(val);
+        if (isAutoFilled && updateData && item?.fieldId) {
+            const current = formData?._autoFilledFields || [];
+            updateData('_autoFilledFields', current.filter(f => f !== item.fieldId));
+        }
+    };
     const [isRefOpen, setIsRefOpen] = React.useState(false);
 
     // Estados especiais
@@ -35,7 +44,7 @@ export const SmartFieldWrapper = ({ item, currentValue, onChange, children, labe
     };
 
     const handleValueChange = (newValue) => {
-        onChange(newValue);
+        handleChangeWithAutoFillClear(newValue);
     };
 
     const childrenWithProps = React.Children.map(children, child => {
@@ -49,12 +58,14 @@ export const SmartFieldWrapper = ({ item, currentValue, onChange, children, labe
             return React.cloneElement(child, {
                 className: `${child.props.className || ''} ${isBlocked ? 'bg-slate-50 text-slate-400 cursor-text' : ''}`,
                 onChange: (eOrVal) => {
+                    const finalVal = eOrVal && eOrVal.target ? eOrVal.target.value : eOrVal;
+                    // Chama onChange do filho primeiro (para masks internas, ex: FormDate)
                     if (child.props.onChange) {
                         child.props.onChange(eOrVal);
-                    } else {
-                        const finalVal = eOrVal && eOrVal.target ? eOrVal.target.value : eOrVal;
-                        handleValueChange(finalVal);
                     }
+                    // Sempre passa pelo handleValueChange → handleChangeWithAutoFillClear
+                    // para garantir que o badge 🔗 some quando o usuário editar
+                    handleValueChange(finalVal);
                 },
                 onFocus: () => { if (isBlocked) onChange(''); },
                 onClick: () => { if (isBlocked) onChange(''); }
@@ -62,6 +73,7 @@ export const SmartFieldWrapper = ({ item, currentValue, onChange, children, labe
         }
         return child;
     });
+
 
     return (
         <div className="flex flex-col w-full relative group/field mb-8 px-0.5">
@@ -178,6 +190,15 @@ export const SmartFieldWrapper = ({ item, currentValue, onChange, children, labe
                 </div>
             </div>
 
+            {/* Auto-fill badge — some quando o usuário edita o campo */}
+            {isAutoFilled && (
+                <div className="flex items-center gap-1 mt-1.5 ml-1">
+                    <span className="text-xs text-emerald-600 font-medium flex items-center gap-1 animate-[fadeIn_0.3s_ease-out]">
+                        🔗 <span>Preenchido automaticamente</span>
+                    </span>
+                </div>
+            )}
+
             {/* Help Text */}
             {item.helpText && (
                 <p className="text-xs text-slate-500 mt-2 flex items-start gap-1.5 ml-1">
@@ -191,8 +212,8 @@ export const SmartFieldWrapper = ({ item, currentValue, onChange, children, labe
 
 // --- COMPONENTS ---
 
-export const FormInput = memo(({ item, value, onChange, formData, updateData }) => (
-    <SmartFieldWrapper item={item} currentValue={value} onChange={onChange} label={item.label} formData={formData} updateData={updateData}>
+export const FormInput = memo(({ item, value, onChange, formData, updateData, autoFilledFields = [] }) => (
+    <SmartFieldWrapper item={item} currentValue={value} onChange={onChange} label={item.label} formData={formData} updateData={updateData} autoFilledFields={autoFilledFields}>
         <input
             type="text"
             value={typeof value === 'object' ? '' : (value || '')}

@@ -490,7 +490,18 @@ function App() {
       };
       // ─────────────────────────────────────────────────────────────────────────
 
+      // [DEBUG AUTO-CRIAR-IRMAO] — remover após diagnóstico
+      console.log('[App→submitData] finalData _vinculo flags:', {
+        _vinculoNomePai: finalData._vinculoNomePai,
+        _vinculoNomeMae: finalData._vinculoNomeMae,
+        nomePai: finalData.nomePai,
+        nomeMae: finalData.nomeMae,
+        parentesco: finalData.parentesco,
+        vinculoFamiliarId: finalData.vinculoFamiliarId
+      });
+
       const res = await submitData(userSession.uid, finalData);
+
 
       if (res.status === 'success') {
         const role = finalData.relationshipInfo?.papel;
@@ -513,6 +524,19 @@ function App() {
             };
             return newState;
           });
+        }
+
+        // Se um irmão/tio foi auto-criado via radio button, recarrega membrosData
+        // para o card aparecer imediatamente na árvore sem precisar recarregar a página
+        if (finalData._vinculoNomePai || finalData._vinculoNomeMae) {
+          try {
+            const refreshed = await fetchFamilyMembers(userSession.uid);
+            if (refreshed?.data) {
+              setFamilyMembers(refreshed.data);
+            }
+          } catch (err) {
+            console.warn('[AUTO-CRIAR] Refresh falhou — recarregue a página se o card não aparecer:', err);
+          }
         }
 
         // Redirecionamento após salvar
@@ -1155,7 +1179,7 @@ function App() {
               onArchiveAllOthers={handleArchiveAllOthers}
               onAcceptDuplicate={handleAcceptDuplicate}
               onMergeDuplicates={handleMergeDuplicates}
-              onCancel={() => { setView('hub'); window.scrollTo(0, 0); }}
+              onCancel={() => { setFormStep(2); window.scrollTo(0, 0); }}
               uid={userSession?.uid || null}
               onRefreshMembers={async () => {
                 if (!userSession?.uid) return;

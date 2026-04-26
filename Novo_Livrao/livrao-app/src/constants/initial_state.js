@@ -44,7 +44,7 @@ export const INITIAL_STATE = {
     shipName: '', // NOVO
 
     // --- Personagem: Saúde/Óbito (5) ---
-    vitalStatus: 'Vivo', // Gatilho óbito
+    situacaoVital: 'Vivo', // Gatilho óbito
     deathDate: '',
     deathCause: '', // NOVO
     deathPlace: '',
